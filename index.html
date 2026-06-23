@@ -1046,8 +1046,8 @@
             </div>
           `;
         }
-        const title = item.type === "earn" ? "อนุมัติยอดซื้อแล้ว" : "ใช้แต้ม";
-        const pointSign = item.type === "earn" ? "+" : "-";
+        const title = item.type === "earn" ? "อนุมัติยอดซื้อแล้ว" : item.type === "refund" ? "คืนแต้ม" : "ใช้แต้ม";
+        const pointSign = item.type === "redeem" ? "-" : "+";
         return `
           <div class="item">
             <div class="item-row">
@@ -1217,9 +1217,10 @@
                 <span class="pill ${item.status === "requested" ? "warn" : ""}">${statusText}</span>
               </div>
               <small>${new Date(item.date).toLocaleString("th-TH")}</small>
+              ${item.refundedAt ? `<small>คืนแต้มแล้ว: ${new Date(item.refundedAt).toLocaleString("th-TH")}</small>` : ""}
               <div class="actions">
-                <button class="btn primary" data-complete-redemption="${item.id}" ${item.status === "completed" ? "disabled" : ""}>จัดการแล้ว</button>
-                <button class="btn danger" data-cancel-redemption="${item.id}" ${item.status === "cancelled" ? "disabled" : ""}>ยกเลิก</button>
+                <button class="btn primary" data-complete-redemption="${item.id}" ${item.status !== "requested" ? "disabled" : ""}>จัดการแล้ว</button>
+                <button class="btn danger" data-cancel-redemption="${item.id}" ${item.status !== "requested" ? "disabled" : ""}>ยกเลิกและคืนแต้ม</button>
               </div>
             </div>
           `;
@@ -1421,8 +1422,8 @@
         return;
       }
       customer.points -= reward.points;
-      const redemption = { id: crypto.randomUUID(), customerId: customer.id, rewardId: reward.id, rewardName: reward.name, points: reward.points, date: now(), status: "requested" };
       const transaction = { id: crypto.randomUUID(), customerId: customer.id, type: "redeem", points: reward.points, amount: 0, note: `แลก ${reward.name}`, date: now() };
+      const redemption = { id: crypto.randomUUID(), customerId: customer.id, rewardId: reward.id, rewardName: reward.name, points: reward.points, transactionId: transaction.id, date: now(), status: "requested" };
       state.redemptions.push(redemption);
       state.transactions.push(transaction);
       saveState();
@@ -1437,21 +1438,46 @@
 
     async function updateRedemptionStatus(id, status) {
       const redemption = state.redemptions.find(item => item.id === id);
-      if (!redemption) return;
+      const customer = state.customers.find(item => item.id === redemption?.customerId);
+      if (!redemption || !customer || redemption.status !== "requested") return;
       redemption.status = status;
       redemption.updatedAt = now();
+      const writes = [];
+      if (status === "cancelled") {
+        customer.points += Number(redemption.points || 0);
+        redemption.refundedAt = now();
+        const refundTransaction = {
+          id: crypto.randomUUID(),
+          customerId: customer.id,
+          type: "refund",
+          points: Number(redemption.points || 0),
+          amount: 0,
+          note: `คืนแต้มจากคำขอแลก ${redemption.rewardName}`,
+          redemptionId: redemption.id,
+          date: redemption.refundedAt
+        };
+        state.transactions.push(refundTransaction);
+        writes.push(saveCloudDoc(cloudCollections.customers, customer));
+        writes.push(saveCloudDoc(cloudCollections.transactions, refundTransaction));
+      }
+      writes.push(saveCloudDoc(cloudCollections.redemptions, redemption));
       saveState();
-      await saveCloudDoc(cloudCollections.redemptions, redemption);
+      await Promise.all(writes);
       if (status === "completed") {
-        const customer = state.customers.find(item => item.id === redemption.customerId);
         await sendLineNotification(customer, "redeem_completed", {
           rewardName: redemption.rewardName,
           points: redemption.points,
           totalPoints: customer?.points || 0
         });
+      } else if (status === "cancelled") {
+        await sendLineNotification(customer, "redeem_cancelled", {
+          rewardName: redemption.rewardName,
+          points: redemption.points,
+          totalPoints: customer.points
+        });
       }
       render();
-      showToast(status === "completed" ? "อัปเดตว่าจัดการแล้ว" : "ยกเลิกคำขอแลกของแล้ว");
+      showToast(status === "completed" ? "อัปเดตว่าจัดการแล้ว" : "ยกเลิกคำขอและคืนแต้มแล้ว");
     }
 
     async function notifyExpiringPoints(id) {

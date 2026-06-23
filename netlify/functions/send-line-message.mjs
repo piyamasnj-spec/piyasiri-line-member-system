@@ -41,6 +41,15 @@ function buildText(type, payload = {}) {
       `แต้มคงเหลือ: ${money(payload.totalPoints)} แต้ม`
     ].join("\n");
   }
+  if (type === "redeem_cancelled") {
+    return [
+      `สวัสดี ${name}`,
+      `คำขอแลกของของคุณถูกยกเลิกแล้ว`,
+      `รายการ: ${payload.rewardName || "-"}`,
+      `ระบบคืนแต้มให้แล้ว ${money(payload.points)} แต้ม`,
+      `แต้มรวมปัจจุบัน: ${money(payload.totalPoints)} แต้ม`
+    ].join("\n");
+  }
   if (type === "points_expiring") {
     return [
       `สวัสดี ${name}`,
