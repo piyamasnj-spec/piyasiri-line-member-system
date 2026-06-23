@@ -1,0 +1,1546 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LINE OA Member System</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    :root {
+      --green: #06c755;
+      --deep: #12322b;
+      --ink: #16211d;
+      --muted: #66746e;
+      --line: #dce5df;
+      --bg: #f5f7f3;
+      --card: #ffffff;
+      --accent: #d57445;
+      --danger: #b42318;
+      --warn: #fff2d7;
+      font-family: Arial, "Noto Sans Thai", Tahoma, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    .shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+    }
+
+    aside {
+      background: var(--deep);
+      color: #f6fff9;
+      padding: 22px 16px;
+      display: grid;
+      align-content: start;
+      gap: 18px;
+    }
+
+    .brand {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: var(--green);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      color: white;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.25;
+    }
+
+    .brand p {
+      margin: 3px 0 0;
+      color: #bcd0c7;
+      font-size: 13px;
+    }
+
+    nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    nav a {
+      color: #e8f5ee;
+      text-decoration: none;
+      padding: 11px 12px;
+      border-radius: 8px;
+      display: block;
+    }
+
+    nav a.active,
+    nav a:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .side-note {
+      color: #bcd0c7;
+      font-size: 13px;
+      line-height: 1.55;
+      border-top: 1px solid rgba(255,255,255,0.14);
+      padding-top: 16px;
+    }
+
+    main {
+      padding: 24px;
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    h2, h3 {
+      margin: 0;
+    }
+
+    .top h2 {
+      font-size: 28px;
+    }
+
+    .top p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      min-height: 40px;
+      padding: 0 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn.primary {
+      background: var(--green);
+      border-color: var(--green);
+      color: white;
+      font-weight: 700;
+    }
+
+    .btn.danger {
+      color: var(--danger);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      align-items: start;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+      gap: 12px;
+    }
+
+    .card, .stat {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 14px 34px rgba(18, 50, 43, 0.07);
+    }
+
+    .card-head {
+      padding: 15px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .card-body {
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .stat {
+      padding: 16px;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 25px;
+    }
+
+    .form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 12px;
+      background: white;
+      color: var(--ink);
+    }
+
+    textarea {
+      padding-top: 10px;
+      min-height: 84px;
+      resize: vertical;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: 3px solid rgba(6, 199, 85, 0.16);
+      border-color: var(--green);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 0 9px;
+      border-radius: 999px;
+      background: #edf3ef;
+      color: #34423a;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .pill.warn {
+      background: var(--warn);
+      color: #735400;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+      max-height: 420px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: white;
+      display: grid;
+      gap: 10px;
+    }
+
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .item small {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .phone {
+      max-width: 430px;
+      margin: 0 auto;
+      background: #eef5f0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(18, 50, 43, 0.1);
+    }
+
+    .phone-head {
+      background: var(--green);
+      color: white;
+      padding: 15px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .phone-body {
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .member-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .points {
+      font-size: 42px;
+      line-height: 1;
+      font-weight: 800;
+      color: var(--deep);
+    }
+
+    .quick {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .quick button {
+      min-height: 72px;
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .view { display: none; }
+    .view.active { display: grid; gap: 18px; }
+    .customer-screen { display: none; }
+    .customer-screen.active { display: grid; gap: 12px; }
+
+    .empty {
+      color: var(--muted);
+      border: 1px dashed #c8d5ce;
+      border-radius: 8px;
+      padding: 22px;
+      text-align: center;
+      background: #fbfcfa;
+      line-height: 1.5;
+    }
+
+    .notice {
+      border: 1px solid #f2d28a;
+      background: var(--warn);
+      color: #6d4b00;
+      border-radius: 8px;
+      padding: 12px;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      max-width: min(420px, calc(100vw - 36px));
+      background: var(--deep);
+      color: white;
+      padding: 12px 14px;
+      border-radius: 8px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: 0.2s ease;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    body.member-mode .shell {
+      grid-template-columns: 1fr;
+    }
+
+    body.member-mode aside,
+    body.member-mode #memberView > .top {
+      display: none;
+    }
+
+    body.member-mode main {
+      padding: 0;
+      background: #eef5f0;
+    }
+
+    body.member-mode .phone {
+      max-width: none;
+      width: 100%;
+      min-height: 100vh;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      margin: 0;
+      background: #eef5f0;
+    }
+
+    body.member-mode .phone-head {
+      border-radius: 0;
+    }
+
+    body.member-mode .phone-body {
+      padding: 12px;
+      width: 100%;
+      max-width: none;
+    }
+
+    body.member-mode .member-card,
+    body.member-mode .card {
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    body.member-mode .quick {
+      width: 100%;
+    }
+
+    body.admin-mode .shell {
+      grid-template-columns: 260px 1fr;
+    }
+
+    body.admin-mode aside {
+      display: grid;
+    }
+
+    @media (max-width: 920px) {
+      .shell { grid-template-columns: 1fr; }
+      aside { position: sticky; top: 0; z-index: 5; }
+      nav { grid-template-columns: repeat(2, 1fr); }
+      main { padding: 16px; }
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .top { flex-direction: column; }
+      .form, .quick { grid-template-columns: 1fr; }
+      nav { grid-template-columns: 1fr; }
+      .points { font-size: 36px; }
+    }
+  </style>
+</head>
+<body class="member-mode">
+  <div class="shell">
+    <aside>
+      <div class="brand">
+        <div class="logo">LINE</div>
+        <div>
+          <h1>ระบบสมาชิก LINE OA</h1>
+          <p>LIFF + หลังบ้านร้าน</p>
+        </div>
+      </div>
+      <nav>
+        <a href="#member" id="navMember">หน้าลูกค้าใน LINE</a>
+        <a href="#admin" id="navAdmin">หลังบ้านร้าน</a>
+      </nav>
+      <div class="side-note">ต้นแบบนี้ใช้ข้อมูลในเบราว์เซอร์ก่อน เมื่อนำไปใช้จริงต้องเชื่อมฐานข้อมูลและ LINE Messaging API</div>
+    </aside>
+
+    <main>
+      <section class="view" id="memberView">
+        <div class="top">
+          <div>
+            <h2>หน้าลูกค้าใน LINE</h2>
+            <p>จำลองหน้า LIFF ที่ลูกค้ากดจาก Rich Menu เพื่อสมัคร เช็คแต้ม เพิ่มแต้ม แลกของ และดูประวัติ</p>
+          </div>
+          <a class="btn" href="#admin">ไปหลังบ้าน</a>
+        </div>
+
+        <div class="phone">
+          <div class="phone-head">
+            <strong>ปิยสิริเคมีเกษตร</strong>
+            <span>LINE OA</span>
+          </div>
+          <div class="phone-body">
+            <section class="customer-screen active" id="screenHome">
+              <div class="member-card" id="memberSummary"></div>
+              <div class="quick">
+                <button data-screen="screenRegister">สมัครสมาชิก</button>
+                <button data-screen="screenPoints">เช็คแต้ม</button>
+                <button data-screen="screenSubmit">เพิ่มแต้ม</button>
+                <button data-screen="screenRedeem">แลกของ</button>
+                <button data-screen="screenHistory">ประวัติซื้อ</button>
+                <button data-screen="screenRewards">ของรางวัล</button>
+              </div>
+            </section>
+
+            <section class="customer-screen" id="screenRegister">
+              <div class="card">
+                <div class="card-head"><h3>สมัครสมาชิก</h3><button class="btn" data-screen="screenHome">กลับ</button></div>
+                <div class="card-body">
+                  <form class="form" id="registerForm">
+                    <div class="field"><label for="customerName">ชื่อ</label><input id="customerName" required placeholder="ชื่อ-นามสกุล"></div>
+                    <div class="field"><label for="customerPhone">เบอร์โทร</label><input id="customerPhone" required inputmode="tel" placeholder="0812345678"></div>
+                    <div class="field"><label for="customerBirthday">วันเกิด</label><input id="customerBirthday" type="date"></div>
+                    <div class="field"><label for="customerArea">พื้นที่เพาะปลูก/อำเภอ</label><input id="customerArea" placeholder="เช่น อ.ปากช่อง"></div>
+                    <div class="field full"><button class="btn primary" type="submit">สมัครสมาชิก</button></div>
+                  </form>
+                </div>
+              </div>
+            </section>
+
+            <section class="customer-screen" id="screenPoints">
+              <div class="card">
+                <div class="card-head"><h3>แต้มของฉัน</h3><button class="btn" data-screen="screenHome">กลับ</button></div>
+                <div class="card-body" id="pointsDetail"></div>
+              </div>
+            </section>
+
+            <section class="customer-screen" id="screenSubmit">
+              <div class="card">
+                <div class="card-head"><h3>ส่งยอดซื้อเพื่อเพิ่มแต้ม</h3><button class="btn" data-screen="screenHome">กลับ</button></div>
+                <div class="card-body">
+                  <form class="form" id="submitPurchaseForm">
+                    <div class="field"><label for="purchaseAmount">ยอดซื้อตามบิล</label><input id="purchaseAmount" required type="number" min="1" placeholder="บาท"></div>
+                    <div class="field"><label for="purchaseRef">เลขบิล/เลขคำสั่งซื้อ</label><input id="purchaseRef" required placeholder="เช่น INV-001"></div>
+                    <div class="field full"><label for="purchaseProof">หลักฐานการซื้อ</label><input id="purchaseProof" required placeholder="เลขใบเสร็จ หรือพิมพ์ว่า ส่งสลิปในแชท LINE"></div>
+                    <div class="field full"><label for="purchaseNote">รายละเอียดเพิ่มเติม</label><textarea id="purchaseNote" placeholder="เช่น ซื้อสินค้าอะไร หรือแจ้งว่ารูปสลิปส่งไว้ในแชท"></textarea></div>
+                    <div class="notice full">แต้มจะยังไม่เข้าทันที ร้านจะตรวจเลขบิล/หลักฐานก่อนอนุมัติ หากยอดไม่ตรง ร้านสามารถปฏิเสธรายการได้</div>
+                    <div class="field full"><button class="btn primary" type="submit">ส่งให้ร้านอนุมัติ</button></div>
+                  </form>
+                </div>
+              </div>
+            </section>
+
+            <section class="customer-screen" id="screenRedeem">
+              <div class="card">
+                <div class="card-head"><h3>แลกของ</h3><button class="btn" data-screen="screenHome">กลับ</button></div>
+                <div class="card-body" id="redeemList"></div>
+              </div>
+            </section>
+
+            <section class="customer-screen" id="screenRewards">
+              <div class="card">
+                <div class="card-head"><h3>ของรางวัล</h3><button class="btn" data-screen="screenHome">กลับ</button></div>
+                <div class="card-body" id="rewardCatalog"></div>
+              </div>
+            </section>
+
+            <section class="customer-screen" id="screenHistory">
+              <div class="card">
+                <div class="card-head"><h3>ประวัติ</h3><button class="btn" data-screen="screenHome">กลับ</button></div>
+                <div class="card-body"><div class="list" id="customerHistory"></div></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="adminView">
+        <div class="top">
+          <div>
+            <h2>หลังบ้านร้าน</h2>
+            <p>ร้านใช้ดูสมาชิก อนุมัติยอดซื้อ ตรวจประวัติ และเตรียมส่งข้อมูลต่อให้ LINE OA</p>
+          </div>
+        </div>
+
+        <section class="stats">
+          <div class="stat"><span>สมาชิก</span><strong id="statCustomers">0</strong></div>
+          <div class="stat"><span>แต้มรวม</span><strong id="statPoints">0</strong></div>
+          <div class="stat"><span>รออนุมัติ</span><strong id="statPending">0</strong></div>
+          <div class="stat"><span>แลกของแล้ว</span><strong id="statRedeemed">0</strong></div>
+          <div class="stat"><span>ฐานข้อมูล</span><strong id="statDatabase">-</strong></div>
+        </section>
+
+        <section class="grid">
+          <div class="card">
+            <div class="card-head"><h3>คำขอเพิ่มแต้ม</h3><span class="pill warn">ต้องอนุมัติก่อนแต้มเข้า</span></div>
+            <div class="card-body"><div class="list" id="pendingList"></div></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>บันทึกยอดซื้อจากเบอร์โทร</h3><span class="pill">หน้าร้านใช้</span></div>
+            <div class="card-body">
+              <form class="form" id="counterSaleForm">
+                <div class="field"><label for="counterPhone">เบอร์โทร</label><input id="counterPhone" required inputmode="tel" placeholder="ลูกค้าแจ้งเบอร์"></div>
+                <div class="field"><label for="counterAmount">ยอดซื้อ</label><input id="counterAmount" required type="number" min="1" placeholder="บาท"></div>
+                <div class="field full"><button class="btn primary" type="submit">บันทึกและเพิ่มแต้ม</button></div>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid">
+          <div class="card">
+            <div class="card-head"><h3>สมาชิกทั้งหมด</h3><input id="searchCustomer" placeholder="ค้นหาชื่อ เบอร์ รหัสสมาชิก"></div>
+            <div class="card-body"><div class="list" id="customerList"></div></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>แต้มใกล้หมดอายุ</h3><span class="pill">30 วัน</span></div>
+            <div class="card-body">
+              <div class="notice">ระบบจะมี Scheduled Function ส่งเตือนอัตโนมัติวันละครั้งหลังตั้งค่า LINE token บน Netlify แล้ว ปุ่มด้านล่างใช้ส่งซ้ำ/ทดสอบรายคนได้</div>
+              <div class="list" id="expiryList"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>คำขอแลกของ</h3><span class="pill warn">รอดำเนินการ</span></div>
+            <div class="card-body"><div class="list" id="redemptionList"></div></div>
+          </div>
+        </section>
+
+        <section class="grid">
+          <div class="card">
+            <div class="card-head"><h3>เพิ่มของรางวัล</h3><span class="pill">แอดมินจัดการเอง</span></div>
+            <div class="card-body">
+              <form class="form" id="rewardForm">
+                <div class="field"><label for="rewardName">ชื่อของรางวัล</label><input id="rewardName" required placeholder="เช่น ส่วนลดปุ๋ย 100 บาท"></div>
+                <div class="field"><label for="rewardPoints">แต้มที่ใช้</label><input id="rewardPoints" required type="number" min="0" placeholder="เช่น 100"></div>
+                <div class="field"><label for="rewardStock">จำนวนคงเหลือ</label><input id="rewardStock" placeholder="เว้นว่างถ้าไม่จำกัด"></div>
+                <div class="field"><label for="rewardActive">สถานะ</label><select id="rewardActive"><option value="true">เปิดให้แลก</option><option value="false">ปิดไว้ก่อน</option></select></div>
+                <div class="field full"><label for="rewardDescription">รายละเอียด</label><textarea id="rewardDescription" placeholder="เงื่อนไข หรือหมายเหตุของรางวัล"></textarea></div>
+                <div class="field full"><button class="btn primary" type="submit">เพิ่มของรางวัล</button></div>
+              </form>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>รายการของรางวัล</h3><span class="pill">แก้สถานะ/ลบ</span></div>
+            <div class="card-body"><div class="list" id="adminRewardList"></div></div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      get,
+      getDatabase,
+      ref,
+      remove,
+      set
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
+    const STORE_KEY = "line_oa_member_liff_demo_v1";
+    const LIFF_ID = "2010437975-l0M2FpDv";
+    const POINT_RATE = 100;
+    const NOTIFICATION_ENDPOINT = "/.netlify/functions/send-line-message";
+    const MOCK_LINE_USER_ID = "U-demo-line-user";
+    const firebaseConfig = {
+      apiKey: "AIzaSyC18-4OWR8kV8Rpjp5DwBZpADDxcy1NXDY",
+      authDomain: "piyasiri-member-system.firebaseapp.com",
+      databaseURL: "https://piyasiri-member-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "piyasiri-member-system",
+      storageBucket: "piyasiri-member-system.firebasestorage.app",
+      messagingSenderId: "1042938423837",
+      appId: "1:1042938423837:web:f91e69db5c74edef1674f4"
+    };
+    const firebaseApp = initializeApp(firebaseConfig);
+    const db = getDatabase(firebaseApp);
+    const cloudCollections = {
+      customers: "customers",
+      transactions: "transactions",
+      pendingPurchases: "pendingPurchases",
+      redemptions: "redemptions",
+      rewards: "rewards"
+    };
+    let currentLineUserId = MOCK_LINE_USER_ID;
+    let currentLineDisplayName = "Demo User";
+    let isLiffReady = false;
+    let isCloudReady = false;
+    const defaultRewards = [
+      { id: "discount-50", name: "ส่วนลดสินค้า 50 บาท", points: 50 },
+      { id: "delivery-free", name: "ส่งฟรี 1 ครั้ง", points: 80 },
+      { id: "discount-100", name: "ส่วนลดสินค้า 100 บาท", points: 100 },
+      { id: "premium-gift", name: "ของพรีเมียมจากร้าน", points: 150 }
+    ];
+
+    let state = loadState();
+
+    const $ = selector => document.querySelector(selector);
+    const els = {
+      memberView: $("#memberView"),
+      adminView: $("#adminView"),
+      navMember: $("#navMember"),
+      navAdmin: $("#navAdmin"),
+      memberSummary: $("#memberSummary"),
+      pointsDetail: $("#pointsDetail"),
+      redeemList: $("#redeemList"),
+      rewardCatalog: $("#rewardCatalog"),
+      customerHistory: $("#customerHistory"),
+      pendingList: $("#pendingList"),
+      customerList: $("#customerList"),
+      expiryList: $("#expiryList"),
+      redemptionList: $("#redemptionList"),
+      adminRewardList: $("#adminRewardList"),
+      toast: $("#toast")
+    };
+
+    function loadState() {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        parsed.customers = parsed.customers || [];
+        parsed.transactions = parsed.transactions || [];
+        parsed.pendingPurchases = parsed.pendingPurchases || [];
+        parsed.redemptions = parsed.redemptions || [];
+        parsed.rewards = parsed.rewards || [];
+        return parsed;
+      }
+      return { customers: [], transactions: [], pendingPurchases: [], redemptions: [], rewards: [] };
+    }
+
+    function saveState() {
+      localStorage.setItem(STORE_KEY, JSON.stringify(state));
+    }
+
+    async function loadCloudState() {
+      try {
+        const [customers, transactions, pendingPurchases, redemptions, rewards] = await Promise.all([
+          loadCloudCollection(cloudCollections.customers),
+          loadCloudCollection(cloudCollections.transactions),
+          loadCloudCollection(cloudCollections.pendingPurchases),
+          loadCloudCollection(cloudCollections.redemptions),
+          loadCloudCollection(cloudCollections.rewards)
+        ]);
+        state = { customers, transactions, pendingPurchases, redemptions, rewards };
+        if (!state.rewards.length) await seedDefaultRewards();
+        saveState();
+        isCloudReady = true;
+        return true;
+      } catch (error) {
+        isCloudReady = false;
+        console.warn("Realtime Database load failed; using local data", error);
+        showToast("ยังเชื่อมฐานข้อมูลไม่ได้ ใช้ข้อมูลในเครื่องชั่วคราว");
+        return false;
+      }
+    }
+
+    async function loadCloudCollection(collectionName) {
+      const snapshot = await get(ref(db, collectionName));
+      const value = snapshot.val() || {};
+      return Object.entries(value).map(([id, item]) => ({ id, ...item }));
+    }
+
+    async function saveCloudDoc(collectionName, item) {
+      try {
+        await set(ref(db, `${collectionName}/${item.id}`), item);
+        isCloudReady = true;
+      } catch (error) {
+        isCloudReady = false;
+        console.warn(`Realtime Database save failed for ${collectionName}`, error);
+        showToast("บันทึกขึ้นฐานข้อมูลไม่สำเร็จ แต่เก็บในเครื่องไว้ก่อน");
+      }
+    }
+
+    async function deleteCloudDoc(collectionName, id) {
+      try {
+        await remove(ref(db, `${collectionName}/${id}`));
+      } catch (error) {
+        console.warn(`Realtime Database delete failed for ${collectionName}`, error);
+      }
+    }
+
+    async function clearCloudCollection(collectionName) {
+      await remove(ref(db, collectionName));
+    }
+
+    async function clearCloudState() {
+      try {
+        await Promise.all(Object.values(cloudCollections).map(clearCloudCollection));
+      } catch (error) {
+        console.warn("Realtime Database clear failed", error);
+        showToast("ล้างข้อมูลบนฐานข้อมูลไม่สำเร็จ");
+      }
+    }
+
+    async function seedDefaultRewards() {
+      state.rewards = defaultRewards.map(item => ({ ...item, active: true, stock: "", description: "" }));
+      await Promise.all(state.rewards.map(item => saveCloudDoc(cloudCollections.rewards, item)));
+    }
+
+    function now() {
+      return new Date().toISOString();
+    }
+
+    function addMonths(value, count) {
+      const date = new Date(value);
+      date.setMonth(date.getMonth() + count);
+      return date.toISOString();
+    }
+
+    function money(value) {
+      return Number(value || 0).toLocaleString("th-TH");
+    }
+
+    function memberCode() {
+      return "MB-" + String(state.customers.length + 1).padStart(4, "0");
+    }
+
+    function pointFromAmount(amount) {
+      return Math.floor(Number(amount) / POINT_RATE);
+    }
+
+    function currentCustomer() {
+      return state.customers.find(customer => customer.lineUserId === currentLineUserId) || null;
+    }
+
+    function showToast(text) {
+      els.toast.textContent = text;
+      els.toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => els.toast.classList.remove("show"), 2400);
+    }
+
+    async function sendLineNotification(customer, type, payload = {}) {
+      if (!customer?.lineUserId) return { ok: false, skipped: true, reason: "missing-line-user-id" };
+      try {
+        const response = await fetch(NOTIFICATION_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: customer.lineUserId,
+            type,
+            payload: {
+              customerName: customer.name,
+              memberCode: customer.code,
+              phone: customer.phone,
+              ...payload
+            }
+          })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || "LINE notification failed");
+        return { ok: true, result };
+      } catch (error) {
+        console.warn("LINE notification failed", error);
+        showToast("บันทึกสำเร็จ แต่ส่งแจ้งเตือน LINE ไม่สำเร็จ");
+        return { ok: false, error };
+      }
+    }
+
+    function isAdminRoute() {
+      return location.hash.startsWith("#admin");
+    }
+
+    async function initLineIdentity({ skipLogin = false } = {}) {
+      if (!window.liff) {
+        isLiffReady = false;
+        return;
+      }
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        isLiffReady = true;
+        if (!liff.isLoggedIn()) {
+          if (skipLogin) {
+            isLiffReady = false;
+            return;
+          }
+          liff.login();
+          return;
+        }
+        const profile = await liff.getProfile();
+        currentLineUserId = profile.userId;
+        currentLineDisplayName = profile.displayName || "LINE User";
+      } catch (error) {
+        isLiffReady = false;
+        console.warn("LIFF init failed; using demo mode", error);
+      }
+    }
+
+    async function seedData() {
+      const date = now();
+      state = {
+        customers: [
+          { id: crypto.randomUUID(), lineUserId: MOCK_LINE_USER_ID, code: "MB-0001", name: "คุณมินตรา", phone: "0812345678", birthday: "1992-08-14", area: "อ.ปากช่อง", points: 245, totalSpend: 28600, joinedAt: date },
+          { id: crypto.randomUUID(), lineUserId: "U-demo-2", code: "MB-0002", name: "คุณธนพล", phone: "0898881122", birthday: "", area: "อ.เมืองชัยภูมิ", points: 96, totalSpend: 9600, joinedAt: date }
+        ],
+        transactions: [],
+        pendingPurchases: [],
+        redemptions: [],
+        rewards: state.rewards.length ? state.rewards : defaultRewards.map(item => ({ ...item, active: true, stock: "", description: "" }))
+      };
+      state.customers.forEach(customer => {
+        state.transactions.push({ id: crypto.randomUUID(), customerId: customer.id, type: "earn", amount: customer.totalSpend, points: customer.points, note: "ยอดสะสมเริ่มต้น", date, expiresAt: addMonths(date, 12) });
+      });
+      saveState();
+      await Promise.all([
+        ...state.customers.map(item => saveCloudDoc(cloudCollections.customers, item)),
+        ...state.transactions.map(item => saveCloudDoc(cloudCollections.transactions, item)),
+        ...state.rewards.map(item => saveCloudDoc(cloudCollections.rewards, item))
+      ]);
+      render();
+      showToast("โหลดข้อมูลตัวอย่างแล้ว");
+    }
+
+    async function clearData() {
+      if (!confirm("ล้างข้อมูลตัวอย่างทั้งหมดในเบราว์เซอร์นี้?")) return;
+      state = { customers: [], transactions: [], pendingPurchases: [], redemptions: [], rewards: [] };
+      saveState();
+      await clearCloudState();
+      render();
+      showToast("ล้างข้อมูลแล้ว");
+    }
+
+    function route() {
+      const hash = location.hash || "#member";
+      const params = new URLSearchParams(location.search);
+      const liffState = params.get("liff.state") || "";
+      const stateParams = liffState.includes("?") ? new URLSearchParams(liffState.split("?")[1]) : new URLSearchParams(liffState.replace(/^#/, ""));
+      const screenParam = params.get("screen") || stateParams.get("screen");
+      const isAdmin = hash.startsWith("#admin");
+      const screenByHash = {
+        "#member": "screenHome",
+        "#register": "screenRegister",
+        "#points": "screenPoints",
+        "#submit": "screenSubmit",
+        "#redeem": "screenRedeem",
+        "#history": "screenHistory",
+        "#rewards": "screenRewards"
+      };
+      const screenByParam = {
+        home: "screenHome",
+        register: "screenRegister",
+        points: "screenPoints",
+        submit: "screenSubmit",
+        redeem: "screenRedeem",
+        history: "screenHistory",
+        rewards: "screenRewards"
+      };
+      els.memberView.classList.toggle("active", !isAdmin);
+      els.adminView.classList.toggle("active", isAdmin);
+      document.body.classList.toggle("member-mode", !isAdmin);
+      document.body.classList.toggle("admin-mode", isAdmin);
+      els.navMember.classList.toggle("active", !isAdmin);
+      els.navAdmin.classList.toggle("active", isAdmin);
+      if (!isAdmin) showScreen(screenByParam[screenParam] || screenByHash[hash] || "screenHome", false);
+      render();
+    }
+
+    function showScreen(id, shouldRender = true) {
+      document.querySelectorAll(".customer-screen").forEach(screen => screen.classList.remove("active"));
+      $("#" + id).classList.add("active");
+      if (shouldRender) renderCustomer();
+    }
+
+    function renderCustomer() {
+      const customer = currentCustomer();
+      if (!customer) {
+        els.memberSummary.innerHTML = `
+          <strong>ยังไม่ได้สมัครสมาชิก</strong>
+          <small>กดสมัครสมาชิกเพื่อผูก LINE user ID กับเบอร์โทรและรหัสสมาชิก</small>
+          <small>${isLiffReady ? `กำลังใช้บัญชี LINE: ${escapeHtml(currentLineDisplayName)}` : "โหมดทดลองนอก LINE"}</small>
+        `;
+        els.pointsDetail.innerHTML = `<div class="empty">กรุณาสมัครสมาชิกก่อนเช็คแต้ม</div>`;
+        els.customerHistory.innerHTML = `<div class="empty">ยังไม่มีประวัติ</div>`;
+      } else {
+        els.memberSummary.innerHTML = `
+          <div class="item-row">
+            <div>
+              <strong>${escapeHtml(customer.name)}</strong>
+              <small>${escapeHtml(customer.code)} · ${escapeHtml(customer.phone)}</small>
+            </div>
+            <span class="pill">${money(customer.points)} แต้ม</span>
+          </div>
+          <div class="points">${money(customer.points)}</div>
+          <small>ซื้อครบ 100 บาท = 1 แต้ม ยอดซื้อที่ลูกค้าแจ้งต้องรอร้านอนุมัติก่อน</small>
+          <small>${isLiffReady ? `บัญชี LINE: ${escapeHtml(currentLineDisplayName)}` : "โหมดทดลองนอก LINE"}</small>
+        `;
+        const nextExpiry = state.transactions
+          .filter(item => item.customerId === customer.id && item.type === "earn")
+          .sort((a, b) => new Date(a.expiresAt) - new Date(b.expiresAt))[0];
+        els.pointsDetail.innerHTML = `
+          <div class="points">${money(customer.points)}</div>
+          <small>รหัสสมาชิก ${escapeHtml(customer.code)}</small>
+          <small>แต้มชุดถัดไปหมดอายุ: ${nextExpiry ? new Date(nextExpiry.expiresAt).toLocaleDateString("th-TH") : "-"}</small>
+        `;
+        renderCustomerHistory(customer);
+      }
+      renderRewards();
+    }
+
+    function renderCustomerHistory(customer) {
+      const pendingItems = state.pendingPurchases
+        .filter(item => item.customerId === customer.id)
+        .map(item => ({ ...item, historyKind: "pending" }));
+      const transactionItems = state.transactions
+        .filter(item => item.customerId === customer.id)
+        .map(item => ({ ...item, historyKind: "transaction" }));
+      const items = [...pendingItems, ...transactionItems]
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+      if (!items.length) {
+        els.customerHistory.innerHTML = `<div class="empty">ยังไม่มีประวัติ</div>`;
+        return;
+      }
+      els.customerHistory.innerHTML = items.map(item => {
+        if (item.historyKind === "pending") {
+          const pendingPoints = pointFromAmount(item.amount);
+          return `
+            <div class="item">
+              <div class="item-row">
+                <div>
+                  <strong>รออนุมัติยอดซื้อ</strong>
+                  <small>วันที่ส่ง: ${new Date(item.date).toLocaleString("th-TH")}</small>
+                  <small>เลขบิล: ${escapeHtml(item.ref || "-")}</small>
+                  <small>ยอดที่แจ้ง: ${money(item.amount)} บาท · คาดว่าจะได้ ${money(pendingPoints)} แต้ม</small>
+                  <small>หลักฐาน: ${escapeHtml(item.proof || "-")}</small>
+                </div>
+                <span class="pill warn">รออนุมัติ</span>
+              </div>
+            </div>
+          `;
+        }
+        const title = item.type === "earn" ? "อนุมัติยอดซื้อแล้ว" : "ใช้แต้ม";
+        const pointSign = item.type === "earn" ? "+" : "-";
+        return `
+          <div class="item">
+            <div class="item-row">
+              <div>
+                <strong>${title}</strong>
+                <small>วันที่ทำรายการ: ${new Date(item.date).toLocaleString("th-TH")}</small>
+                ${item.ref ? `<small>เลขบิล: ${escapeHtml(item.ref)}</small>` : ""}
+                ${item.type === "earn" ? `<small>ยอดอนุมัติจริง: ${money(item.approvedAmount || item.amount)} บาท</small>` : ""}
+                ${item.type === "earn" && item.requestedAmount && item.requestedAmount !== item.approvedAmount ? `<small>ยอดที่แจ้ง ${money(item.requestedAmount)} บาท · ร้านปรับเป็น ${money(item.approvedAmount)} บาท</small>` : ""}
+                <small>${escapeHtml(item.note || "-")}</small>
+                ${item.adminNote ? `<small>หมายเหตุร้าน: ${escapeHtml(item.adminNote)}</small>` : ""}
+              </div>
+              <span class="pill">${pointSign}${money(item.points)} แต้ม</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderRewards() {
+      const customer = currentCustomer();
+      const activeRewards = state.rewards.filter(reward => reward.active !== false);
+      const html = activeRewards.map(reward => `
+        <div class="item">
+          <div class="item-row">
+            <div>
+              <strong>${escapeHtml(reward.name)}</strong>
+              <small>ใช้ ${money(reward.points)} แต้ม${reward.stock ? ` · คงเหลือ ${escapeHtml(reward.stock)}` : ""}</small>
+              ${reward.description ? `<small>${escapeHtml(reward.description)}</small>` : ""}
+            </div>
+            <button class="btn ${customer && customer.points >= reward.points ? "primary" : ""}" data-redeem="${reward.id}" ${!customer || customer.points < reward.points ? "disabled" : ""}>${customer && customer.points >= reward.points ? "แลก" : "แต้มไม่พอ"}</button>
+          </div>
+        </div>
+      `).join("");
+      els.redeemList.innerHTML = html || `<div class="empty">ยังไม่มีของรางวัล</div>`;
+      els.rewardCatalog.innerHTML = html || `<div class="empty">ยังไม่มีของรางวัล</div>`;
+      document.querySelectorAll("[data-redeem]").forEach(button => button.addEventListener("click", () => redeemReward(button.dataset.redeem)));
+    }
+
+    function renderAdmin() {
+      const totalPoints = state.customers.reduce((sum, customer) => sum + customer.points, 0);
+      $("#statCustomers").textContent = money(state.customers.length);
+      $("#statPoints").textContent = money(totalPoints);
+      $("#statPending").textContent = money(state.pendingPurchases.length);
+      $("#statRedeemed").textContent = money(state.redemptions.length);
+      $("#statDatabase").textContent = isCloudReady ? "เชื่อมแล้ว" : "ในเครื่อง";
+      renderPending();
+      renderCustomers();
+      renderExpiry();
+      renderRedemptions();
+      renderAdminRewards();
+    }
+
+    function renderPending() {
+      if (!state.pendingPurchases.length) {
+        els.pendingList.innerHTML = `<div class="empty">ยังไม่มีรายการรออนุมัติ</div>`;
+        return;
+      }
+      els.pendingList.innerHTML = state.pendingPurchases.map(item => {
+        const customer = state.customers.find(entry => entry.id === item.customerId);
+        const approvedAmount = item.approvedAmount || item.amount;
+        const points = pointFromAmount(approvedAmount);
+        return `
+          <div class="item">
+            <div class="item-row">
+              <div>
+                <strong>${escapeHtml(customer?.name || "ไม่พบสมาชิก")}</strong>
+                <small>${escapeHtml(customer?.phone || "-")} · ลูกค้าแจ้ง ${money(item.amount)} บาท</small>
+              </div>
+              <span class="pill warn">รออนุมัติ</span>
+            </div>
+            <small>เลขบิล: ${escapeHtml(item.ref || "-")}</small>
+            <small>หลักฐาน: ${escapeHtml(item.proof || "-")}</small>
+            <small>หมายเหตุ: ${escapeHtml(item.note || "-")}</small>
+            <div class="form">
+              <div class="field">
+                <label for="approved-${item.id}">ยอดอนุมัติจริง</label>
+                <input id="approved-${item.id}" data-approved-amount="${item.id}" type="number" min="0" value="${approvedAmount}">
+              </div>
+              <div class="field">
+                <label for="admin-note-${item.id}">หมายเหตุแอดมิน</label>
+                <input id="admin-note-${item.id}" data-admin-note="${item.id}" value="${escapeAttr(item.adminNote || "")}" placeholder="เช่น ปรับยอดตามบิลจริง">
+              </div>
+            </div>
+            <div class="notice">ตรวจยอดซื้อกับเลขบิล/สลิปก่อนกดอนุมัติ ระบบจะคิดแต้มจากยอดอนุมัติจริง: ${money(points)} แต้ม</div>
+            <div class="actions">
+              <button class="btn primary" data-approve="${item.id}">อนุมัติ</button>
+              <button class="btn danger" data-reject="${item.id}">ปฏิเสธ</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+      document.querySelectorAll("[data-approve]").forEach(button => button.addEventListener("click", () => approvePurchase(button.dataset.approve)));
+      document.querySelectorAll("[data-reject]").forEach(button => button.addEventListener("click", () => rejectPurchase(button.dataset.reject)));
+    }
+
+    function renderCustomers() {
+      const query = $("#searchCustomer").value.trim().toLowerCase();
+      const customers = state.customers.filter(customer => `${customer.name} ${customer.phone} ${customer.code}`.toLowerCase().includes(query));
+      if (!customers.length) {
+        els.customerList.innerHTML = `<div class="empty">ยังไม่มีสมาชิก</div>`;
+        return;
+      }
+      els.customerList.innerHTML = customers.map(customer => `
+        <div class="item">
+          <div class="item-row">
+            <div>
+              <strong>${escapeHtml(customer.name)}</strong>
+              <small>${escapeHtml(customer.code)} · ${escapeHtml(customer.phone)} · ${escapeHtml(customer.area || customer.province || "-")}</small>
+            </div>
+            <span class="pill">${money(customer.points)} แต้ม</span>
+          </div>
+          <small>ยอดซื้อรวม ${money(customer.totalSpend)} บาท</small>
+        </div>
+      `).join("");
+    }
+
+    function renderExpiry() {
+      const start = Date.now();
+      const end = start + 30 * 24 * 60 * 60 * 1000;
+      const items = state.transactions.filter(item => {
+        if (item.type !== "earn" || !item.expiresAt) return false;
+        const expiry = new Date(item.expiresAt).getTime();
+        return expiry >= start && expiry <= end;
+      });
+      if (!items.length) {
+        els.expiryList.innerHTML = `<div class="empty">ไม่มีแต้มหมดอายุใน 30 วัน</div>`;
+        return;
+      }
+      els.expiryList.innerHTML = items.map(item => {
+        const customer = state.customers.find(entry => entry.id === item.customerId);
+        return `
+          <div class="item">
+            <div class="item-row">
+              <div>
+                <strong>${escapeHtml(customer?.name || "-")}</strong>
+                <small>${escapeHtml(customer?.phone || "-")} · ${money(item.points)} แต้มจะหมดอายุวันที่ ${new Date(item.expiresAt).toLocaleDateString("th-TH")}</small>
+                ${item.expiryNotifiedAt ? `<small>แจ้งเตือนล่าสุด: ${new Date(item.expiryNotifiedAt).toLocaleString("th-TH")}</small>` : ""}
+              </div>
+              <button class="btn primary" data-notify-expiry="${item.id}">แจ้งเตือน LINE</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+      document.querySelectorAll("[data-notify-expiry]").forEach(button => {
+        button.addEventListener("click", () => notifyExpiringPoints(button.dataset.notifyExpiry));
+      });
+    }
+
+    function renderRedemptions() {
+      if (!state.redemptions.length) {
+        els.redemptionList.innerHTML = `<div class="empty">ยังไม่มีคำขอแลกของ</div>`;
+        return;
+      }
+      els.redemptionList.innerHTML = [...state.redemptions]
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .map(item => {
+          const customer = state.customers.find(entry => entry.id === item.customerId);
+          const statusText = item.status === "completed" ? "จัดการแล้ว" : item.status === "cancelled" ? "ยกเลิก" : "รอดำเนินการ";
+          return `
+            <div class="item">
+              <div class="item-row">
+                <div>
+                  <strong>${escapeHtml(item.rewardName || "-")}</strong>
+                  <small>${escapeHtml(customer?.name || "-")} · ${escapeHtml(customer?.phone || "-")} · ใช้ ${money(item.points)} แต้ม</small>
+                </div>
+                <span class="pill ${item.status === "requested" ? "warn" : ""}">${statusText}</span>
+              </div>
+              <small>${new Date(item.date).toLocaleString("th-TH")}</small>
+              <div class="actions">
+                <button class="btn primary" data-complete-redemption="${item.id}" ${item.status === "completed" ? "disabled" : ""}>จัดการแล้ว</button>
+                <button class="btn danger" data-cancel-redemption="${item.id}" ${item.status === "cancelled" ? "disabled" : ""}>ยกเลิก</button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      document.querySelectorAll("[data-complete-redemption]").forEach(button => {
+        button.addEventListener("click", () => updateRedemptionStatus(button.dataset.completeRedemption, "completed"));
+      });
+      document.querySelectorAll("[data-cancel-redemption]").forEach(button => {
+        button.addEventListener("click", () => updateRedemptionStatus(button.dataset.cancelRedemption, "cancelled"));
+      });
+    }
+
+    function renderAdminRewards() {
+      if (!state.rewards.length) {
+        els.adminRewardList.innerHTML = `<div class="empty">ยังไม่มีของรางวัล</div>`;
+        return;
+      }
+      els.adminRewardList.innerHTML = state.rewards
+        .sort((a, b) => Number(a.points) - Number(b.points))
+        .map(reward => `
+          <div class="item">
+            <div class="item-row">
+              <div>
+                <strong>${escapeHtml(reward.name)}</strong>
+                <small>ใช้ ${money(reward.points)} แต้ม${reward.stock ? ` · คงเหลือ ${escapeHtml(reward.stock)}` : ""}</small>
+                ${reward.description ? `<small>${escapeHtml(reward.description)}</small>` : ""}
+              </div>
+              <span class="pill ${reward.active === false ? "warn" : ""}">${reward.active === false ? "ปิด" : "เปิด"}</span>
+            </div>
+            <div class="actions">
+              <button class="btn" data-toggle-reward="${reward.id}">${reward.active === false ? "เปิดให้แลก" : "ปิดไว้ก่อน"}</button>
+              <button class="btn danger" data-delete-reward="${reward.id}">ลบ</button>
+            </div>
+          </div>
+        `).join("");
+      document.querySelectorAll("[data-toggle-reward]").forEach(button => {
+        button.addEventListener("click", () => toggleReward(button.dataset.toggleReward));
+      });
+      document.querySelectorAll("[data-delete-reward]").forEach(button => {
+        button.addEventListener("click", () => deleteReward(button.dataset.deleteReward));
+      });
+    }
+
+    async function registerCustomer(event) {
+      event.preventDefault();
+      const phone = $("#customerPhone").value.trim();
+      const existing = state.customers.find(customer => customer.phone === phone || customer.lineUserId === currentLineUserId);
+      if (existing) {
+        existing.lineUserId = currentLineUserId;
+        existing.name = $("#customerName").value.trim();
+        existing.birthday = $("#customerBirthday").value;
+        existing.area = $("#customerArea").value.trim();
+        await saveCloudDoc(cloudCollections.customers, existing);
+        showToast("อัปเดตข้อมูลสมาชิกแล้ว");
+      } else {
+        const customer = {
+          id: crypto.randomUUID(),
+          lineUserId: currentLineUserId,
+          code: memberCode(),
+          name: $("#customerName").value.trim(),
+          phone,
+          birthday: $("#customerBirthday").value,
+          area: $("#customerArea").value.trim(),
+          points: 0,
+          totalSpend: 0,
+          joinedAt: now()
+        };
+        state.customers.push(customer);
+        await saveCloudDoc(cloudCollections.customers, customer);
+        showToast("สมัครสมาชิกสำเร็จ");
+      }
+      saveState();
+      event.currentTarget.reset();
+      showScreen("screenHome");
+    }
+
+    async function submitPurchase(event) {
+      event.preventDefault();
+      const customer = currentCustomer();
+      if (!customer) {
+        showToast("กรุณาสมัครสมาชิกก่อน");
+        return;
+      }
+      const refValue = $("#purchaseRef").value.trim();
+      const proofValue = $("#purchaseProof").value.trim();
+      if (!refValue || !proofValue) {
+        showToast("กรุณากรอกเลขบิลและหลักฐานการซื้อ");
+        return;
+      }
+      const duplicateRef = [...state.pendingPurchases, ...state.transactions].some(item => item.ref && item.ref.toLowerCase() === refValue.toLowerCase());
+      if (duplicateRef) {
+        showToast("เลขบิลนี้ถูกส่งหรือสะสมแต้มแล้ว");
+        return;
+      }
+      const pendingPurchase = {
+        id: crypto.randomUUID(),
+        customerId: customer.id,
+        amount: Number($("#purchaseAmount").value),
+        ref: refValue,
+        proof: proofValue,
+        note: $("#purchaseNote").value.trim(),
+        status: "pending",
+        date: now()
+      };
+      state.pendingPurchases.push(pendingPurchase);
+      await saveCloudDoc(cloudCollections.pendingPurchases, pendingPurchase);
+      saveState();
+      event.currentTarget.reset();
+      showToast("ส่งยอดซื้อแล้ว รอร้านอนุมัติ");
+      showScreen("screenHome");
+    }
+
+    function addApprovedPurchase(customer, amount, note, meta = {}) {
+      const points = pointFromAmount(amount);
+      customer.points += points;
+      customer.totalSpend += amount;
+      const transaction = { id: crypto.randomUUID(), customerId: customer.id, type: "earn", amount, points, note, date: now(), expiresAt: addMonths(now(), 12), ...meta };
+      state.transactions.push(transaction);
+      return { points, transaction };
+    }
+
+    async function approvePurchase(id) {
+      const request = state.pendingPurchases.find(item => item.id === id);
+      const customer = state.customers.find(item => item.id === request?.customerId);
+      if (!request || !customer) return;
+      const approvedAmountInput = document.querySelector(`[data-approved-amount="${id}"]`);
+      const adminNoteInput = document.querySelector(`[data-admin-note="${id}"]`);
+      const approvedAmount = Math.max(0, Number(approvedAmountInput?.value || request.amount));
+      const adminNote = adminNoteInput?.value.trim() || "";
+      if (!approvedAmount) {
+        showToast("กรุณาระบุยอดอนุมัติจริง");
+        return;
+      }
+      const { points, transaction } = addApprovedPurchase(customer, approvedAmount, "ร้านอนุมัติยอดซื้อ", {
+        ref: request.ref || "",
+        proof: request.proof || "",
+        requestedAmount: request.amount,
+        approvedAmount,
+        adminNote
+      });
+      state.pendingPurchases = state.pendingPurchases.filter(item => item.id !== id);
+      saveState();
+      await Promise.all([
+        saveCloudDoc(cloudCollections.customers, customer),
+        saveCloudDoc(cloudCollections.transactions, transaction),
+        deleteCloudDoc(cloudCollections.pendingPurchases, id)
+      ]);
+      await sendLineNotification(customer, "approved_points", {
+        points,
+        amount: approvedAmount,
+        requestedAmount: request.amount,
+        ref: request.ref || "",
+        expiresAt: transaction.expiresAt,
+        totalPoints: customer.points
+      });
+      render();
+      showToast(`อนุมัติแล้ว +${points} แต้ม`);
+    }
+
+    async function rejectPurchase(id) {
+      state.pendingPurchases = state.pendingPurchases.filter(item => item.id !== id);
+      saveState();
+      await deleteCloudDoc(cloudCollections.pendingPurchases, id);
+      render();
+      showToast("ปฏิเสธรายการแล้ว");
+    }
+
+    async function counterSale(event) {
+      event.preventDefault();
+      const customer = state.customers.find(item => item.phone === $("#counterPhone").value.trim());
+      if (!customer) {
+        showToast("ไม่พบสมาชิกจากเบอร์นี้");
+        return;
+      }
+      const { points, transaction } = addApprovedPurchase(customer, Number($("#counterAmount").value), "บันทึกจากหน้าร้านด้วยเบอร์โทร");
+      saveState();
+      await Promise.all([
+        saveCloudDoc(cloudCollections.customers, customer),
+        saveCloudDoc(cloudCollections.transactions, transaction)
+      ]);
+      await sendLineNotification(customer, "approved_points", {
+        points,
+        amount: transaction.amount,
+        ref: "บันทึกหน้าร้าน",
+        expiresAt: transaction.expiresAt,
+        totalPoints: customer.points
+      });
+      event.currentTarget.reset();
+      render();
+      showToast(`บันทึกแล้ว +${points} แต้ม`);
+    }
+
+    async function redeemReward(id) {
+      const reward = state.rewards.find(item => item.id === id && item.active !== false);
+      const customer = currentCustomer();
+      if (!reward || !customer) return;
+      if (customer.points < reward.points) {
+        showToast("แต้มไม่พอสำหรับแลกรางวัลนี้");
+        return;
+      }
+      customer.points -= reward.points;
+      const redemption = { id: crypto.randomUUID(), customerId: customer.id, rewardId: reward.id, rewardName: reward.name, points: reward.points, date: now(), status: "requested" };
+      const transaction = { id: crypto.randomUUID(), customerId: customer.id, type: "redeem", points: reward.points, amount: 0, note: `แลก ${reward.name}`, date: now() };
+      state.redemptions.push(redemption);
+      state.transactions.push(transaction);
+      saveState();
+      await Promise.all([
+        saveCloudDoc(cloudCollections.customers, customer),
+        saveCloudDoc(cloudCollections.redemptions, redemption),
+        saveCloudDoc(cloudCollections.transactions, transaction)
+      ]);
+      render();
+      showToast("ส่งคำขอแลกของแล้ว");
+    }
+
+    async function updateRedemptionStatus(id, status) {
+      const redemption = state.redemptions.find(item => item.id === id);
+      if (!redemption) return;
+      redemption.status = status;
+      redemption.updatedAt = now();
+      saveState();
+      await saveCloudDoc(cloudCollections.redemptions, redemption);
+      if (status === "completed") {
+        const customer = state.customers.find(item => item.id === redemption.customerId);
+        await sendLineNotification(customer, "redeem_completed", {
+          rewardName: redemption.rewardName,
+          points: redemption.points,
+          totalPoints: customer?.points || 0
+        });
+      }
+      render();
+      showToast(status === "completed" ? "อัปเดตว่าจัดการแล้ว" : "ยกเลิกคำขอแลกของแล้ว");
+    }
+
+    async function notifyExpiringPoints(id) {
+      const transaction = state.transactions.find(item => item.id === id);
+      const customer = state.customers.find(item => item.id === transaction?.customerId);
+      if (!transaction || !customer) return;
+      const result = await sendLineNotification(customer, "points_expiring", {
+        points: transaction.points,
+        expiresAt: transaction.expiresAt,
+        totalPoints: customer.points
+      });
+      if (result.ok) {
+        transaction.expiryNotifiedAt = now();
+        saveState();
+        await saveCloudDoc(cloudCollections.transactions, transaction);
+        render();
+        showToast("ส่งเตือนแต้มใกล้หมดอายุแล้ว");
+      }
+    }
+
+    async function addReward(event) {
+      event.preventDefault();
+      const reward = {
+        id: crypto.randomUUID(),
+        name: $("#rewardName").value.trim(),
+        points: Number($("#rewardPoints").value),
+        stock: $("#rewardStock").value.trim(),
+        active: $("#rewardActive").value === "true",
+        description: $("#rewardDescription").value.trim(),
+        createdAt: now()
+      };
+      state.rewards.push(reward);
+      saveState();
+      await saveCloudDoc(cloudCollections.rewards, reward);
+      event.currentTarget.reset();
+      render();
+      showToast("เพิ่มของรางวัลแล้ว");
+    }
+
+    async function toggleReward(id) {
+      const reward = state.rewards.find(item => item.id === id);
+      if (!reward) return;
+      reward.active = reward.active === false;
+      reward.updatedAt = now();
+      saveState();
+      await saveCloudDoc(cloudCollections.rewards, reward);
+      render();
+      showToast(reward.active ? "เปิดให้แลกแล้ว" : "ปิดของรางวัลแล้ว");
+    }
+
+    async function deleteReward(id) {
+      if (!confirm("ลบของรางวัลนี้?")) return;
+      state.rewards = state.rewards.filter(item => item.id !== id);
+      saveState();
+      await deleteCloudDoc(cloudCollections.rewards, id);
+      render();
+      showToast("ลบของรางวัลแล้ว");
+    }
+
+    function render() {
+      renderCustomer();
+      renderAdmin();
+    }
+
+    function escapeHtml(value) {
+      return String(value || "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replace(/`/g, "&#096;");
+    }
+
+    window.addEventListener("hashchange", route);
+    document.querySelectorAll("[data-screen]").forEach(button => button.addEventListener("click", () => showScreen(button.dataset.screen)));
+    $("#registerForm").addEventListener("submit", registerCustomer);
+    $("#submitPurchaseForm").addEventListener("submit", submitPurchase);
+    $("#counterSaleForm").addEventListener("submit", counterSale);
+    $("#rewardForm").addEventListener("submit", addReward);
+    $("#seedBtn")?.addEventListener("click", seedData);
+    $("#clearBtn")?.addEventListener("click", clearData);
+    $("#searchCustomer").addEventListener("input", renderCustomers);
+
+    async function boot() {
+      await initLineIdentity({ skipLogin: isAdminRoute() });
+      await loadCloudState();
+      route();
+    }
+
+    boot();
+  </script>
+</body>
+</html>
