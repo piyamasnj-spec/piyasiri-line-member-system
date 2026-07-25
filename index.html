@@ -1,100 +1,1663 @@
-const LINE_PUSH_ENDPOINT = "https://api.line.me/v2/bot/message/push";
+﻿<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LINE OA Member System</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    :root {
+      --green: #06c755;
+      --deep: #12322b;
+      --ink: #16211d;
+      --muted: #66746e;
+      --line: #dce5df;
+      --bg: #f5f7f3;
+      --card: #ffffff;
+      --accent: #d57445;
+      --danger: #b42318;
+      --warn: #fff2d7;
+      font-family: Arial, "Noto Sans Thai", Tahoma, sans-serif;
+    }
 
-const headers = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "Content-Type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Content-Type": "application/json"
-};
+    * { box-sizing: border-box; }
 
-function json(status, body) {
-  return new Response(JSON.stringify(body), { status, headers });
-}
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+    }
 
-function formatDate(value) {
-  if (!value) return "-";
-  return new Intl.DateTimeFormat("th-TH", { dateStyle: "medium", timeZone: "Asia/Bangkok" }).format(new Date(value));
-}
+    button, input, select, textarea {
+      font: inherit;
+    }
 
-function money(value) {
-  return Number(value || 0).toLocaleString("th-TH");
-}
+    .shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+    }
 
-function buildText(type, payload = {}) {
-  const name = payload.customerName || "คุณลูกค้า";
-  if (type === "approved_points") {
-    return [
-      `สวัสดี ${name}`,
-      `ร้านปิยสิริเคมีเกษตรอนุมัติแต้มให้แล้ว +${money(payload.points)} แต้ม`,
-      `ยอดซื้อที่อนุมัติ: ${money(payload.amount)} บาท`,
-      payload.ref ? `เลขบิล/อ้างอิง: ${payload.ref}` : "",
-      `แต้มรวมปัจจุบัน: ${money(payload.totalPoints)} แต้ม`,
-      `แต้มชุดนี้หมดอายุ: ${formatDate(payload.expiresAt)}`
-    ].filter(Boolean).join("\n");
-  }
-  if (type === "redeem_completed") {
-    return [
-      `สวัสดี ${name}`,
-      `ร้านจัดการคำขอแลกของเรียบร้อยแล้ว`,
-      `รายการ: ${payload.rewardName || "-"}`,
-      `ใช้แต้ม: ${money(payload.points)} แต้ม`,
-      `แต้มคงเหลือ: ${money(payload.totalPoints)} แต้ม`
-    ].join("\n");
-  }
-  if (type === "redeem_cancelled") {
-    return [
-      `สวัสดี ${name}`,
-      `คำขอแลกของของคุณถูกยกเลิกแล้ว`,
-      `รายการ: ${payload.rewardName || "-"}`,
-      `ระบบคืนแต้มให้แล้ว ${money(payload.points)} แต้ม`,
-      `แต้มรวมปัจจุบัน: ${money(payload.totalPoints)} แต้ม`
-    ].join("\n");
-  }
-  if (type === "points_expiring") {
-    return [
-      `สวัสดี ${name}`,
-      `แจ้งเตือนแต้มใกล้หมดอายุ`,
-      `${money(payload.points)} แต้ม จะหมดอายุวันที่ ${formatDate(payload.expiresAt)}`,
-      `แต้มรวมปัจจุบัน: ${money(payload.totalPoints)} แต้ม`,
-      `สามารถเข้ามาแลกของรางวัลได้ใน LINE OA ของร้าน`
-    ].join("\n");
-  }
-  return payload.text || "แจ้งเตือนจากระบบสมาชิกปิยสิริเคมีเกษตร";
-}
+    aside {
+      background: var(--deep);
+      color: #f6fff9;
+      padding: 22px 16px;
+      display: grid;
+      align-content: start;
+      gap: 18px;
+    }
 
-async function pushLineMessage(to, text) {
-  const token = process.env.LINE_CHANNEL_ACCESS_TOKEN;
-  if (!token) {
-    return { ok: false, status: 500, body: { error: "missing LINE_CHANNEL_ACCESS_TOKEN" } };
-  }
-  const response = await fetch(LINE_PUSH_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({
-      to,
-      messages: [{ type: "text", text }]
-    })
-  });
-  const responseText = await response.text();
-  return {
-    ok: response.ok,
-    status: response.status,
-    body: responseText ? JSON.parse(responseText) : {}
-  };
-}
+    .brand {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
 
-export default async function handler(request) {
-  if (request.method === "OPTIONS") return new Response("", { status: 204, headers });
-  if (request.method !== "POST") return json(405, { error: "method not allowed" });
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: var(--green);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      color: white;
+    }
 
-  const body = await request.json().catch(() => null);
-  if (!body?.to) return json(400, { error: "missing recipient user ID" });
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.25;
+    }
 
-  const text = buildText(body.type, body.payload);
-  const result = await pushLineMessage(body.to, text);
-  if (!result.ok) return json(result.status || 500, { error: "line push failed", detail: result.body });
-  return json(200, { ok: true });
-}
+    .brand p {
+      margin: 3px 0 0;
+      color: #bcd0c7;
+      font-size: 13px;
+    }
+
+    nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    nav a {
+      color: #e8f5ee;
+      text-decoration: none;
+      padding: 11px 12px;
+      border-radius: 8px;
+      display: block;
+    }
+
+    nav a.active,
+    nav a:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .side-note {
+      color: #bcd0c7;
+      font-size: 13px;
+      line-height: 1.55;
+      border-top: 1px solid rgba(255,255,255,0.14);
+      padding-top: 16px;
+    }
+
+    main {
+      padding: 24px;
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    h2, h3 {
+      margin: 0;
+    }
+
+    .top h2 {
+      font-size: 28px;
+    }
+
+    .top p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+      min-height: 40px;
+      padding: 0 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn.primary {
+      background: var(--green);
+      border-color: var(--green);
+      color: white;
+      font-weight: 700;
+    }
+
+    .btn.danger {
+      color: var(--danger);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      align-items: start;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+      gap: 12px;
+    }
+
+    .card, .stat {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 14px 34px rgba(18, 50, 43, 0.07);
+    }
+
+    .card-head {
+      padding: 15px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .card-body {
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .stat {
+      padding: 16px;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 25px;
+    }
+
+    .form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 12px;
+      background: white;
+      color: var(--ink);
+    }
+
+    textarea {
+      padding-top: 10px;
+      min-height: 84px;
+      resize: vertical;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: 3px solid rgba(6, 199, 85, 0.16);
+      border-color: var(--green);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 0 9px;
+      border-radius: 999px;
+      background: #edf3ef;
+      color: #34423a;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .pill.warn {
+      background: var(--warn);
+      color: #735400;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+      max-height: 420px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: white;
+      display: grid;
+      gap: 10px;
+    }
+
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .item strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .item small {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .phone {
+      max-width: 430px;
+      margin: 0 auto;
+      background: #eef5f0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(18, 50, 43, 0.1);
+    }
+
+    .phone-head {
+      background: var(--green);
+      color: white;
+      padding: 15px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .phone-body {
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .member-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .points {
+      font-size: 42px;
+      line-height: 1;
+      font-weight: 800;
+      color: var(--deep);
+    }
+
+    .quick {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .quick button {
+      min-height: 72px;
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .view { display: none; }
+    .view.active { display: grid; gap: 18px; }
+    .customer-screen { display: none; }
+    .customer-screen.active { display: grid; gap: 12px; }
+
+    .empty {
+      color: var(--muted);
+      border: 1px dashed #c8d5ce;
+      border-radius: 8px;
+      padding: 22px;
+      text-align: center;
+      background: #fbfcfa;
+      line-height: 1.5;
+    }
+
+    .notice {
+      border: 1px solid #f2d28a;
+      background: var(--warn);
+      color: #6d4b00;
+      border-radius: 8px;
+      padding: 12px;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      max-width: min(420px, calc(100vw - 36px));
+      background: var(--deep);
+      color: white;
+      padding: 12px 14px;
+      border-radius: 8px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: 0.2s ease;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .admin-lock {
+      width: min(520px, 100%);
+      margin: 8vh auto 0;
+    }
+
+    .admin-lock .card-body {
+      gap: 12px;
+    }
+
+    .admin-lock-message {
+      min-height: 22px;
+      color: var(--danger);
+      font-size: 14px;
+    }
+
+    body.admin-mode:not(.admin-authenticated) #adminView {
+      align-content: start;
+    }
+
+    body.admin-mode:not(.admin-authenticated) #adminView > :not(.admin-lock) {
+      display: none;
+    }
+
+    body.admin-authenticated .admin-lock {
+      display: none;
+    }
+
+    body.member-mode .shell {
+      grid-template-columns: 1fr;
+    }
+
+    body.member-mode aside,
+    body.member-mode #memberView > .top {
+      display: none;
+    }
+
+    body.member-mode main {
+      padding: 0;
+      background: #eef5f0;
+    }
+
+    body.member-mode .phone {
+      max-width: none;
+      width: 100%;
+      min-height: 100vh;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      margin: 0;
+      background: #eef5f0;
+    }
+
+    body.member-mode .phone-head {
+      border-radius: 0;
+    }
+
+    body.member-mode .phone-body {
+      padding: 12px;
+      width: 100%;
+      max-width: none;
+    }
+
+    body.member-mode .member-card,
+    body.member-mode .card {
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    body.member-mode .quick {
+      width: 100%;
+    }
+
+    body.admin-mode .shell {
+      grid-template-columns: 260px 1fr;
+    }
+
+    body.admin-mode aside {
+      display: grid;
+    }
+
+    @media (max-width: 920px) {
+      .shell { grid-template-columns: 1fr; }
+      aside { position: sticky; top: 0; z-index: 5; }
+      nav { grid-template-columns: repeat(2, 1fr); }
+      main { padding: 16px; }
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .top { flex-direction: column; }
+      .form, .quick { grid-template-columns: 1fr; }
+      nav { grid-template-columns: 1fr; }
+      .points { font-size: 36px; }
+    }
+  </style>
+</head>
+<body class="member-mode">
+  <div class="shell">
+    <aside>
+      <div class="brand">
+        <div class="logo">LINE</div>
+        <div>
+          <h1>เธฃเธฐเธเธเธชเธกเธฒเธเธดเธ LINE OA</h1>
+          <p>LIFF + เธซเธฅเธฑเธเธเนเธฒเธเธฃเนเธฒเธ</p>
+        </div>
+      </div>
+      <nav>
+        <a href="#member" id="navMember">เธซเธเนเธฒเธฅเธนเธเธเนเธฒเนเธ LINE</a>
+        <a href="#admin" id="navAdmin">เธซเธฅเธฑเธเธเนเธฒเธเธฃเนเธฒเธ</a>
+      </nav>
+      <div class="side-note">เธ•เนเธเนเธเธเธเธตเนเนเธเนเธเนเธญเธกเธนเธฅเนเธเน€เธเธฃเธฒเธงเนเน€เธเธญเธฃเนเธเนเธญเธ เน€เธกเธทเนเธญเธเธณเนเธเนเธเนเธเธฃเธดเธเธ•เนเธญเธเน€เธเธทเนเธญเธกเธเธฒเธเธเนเธญเธกเธนเธฅเนเธฅเธฐ LINE Messaging API</div>
+    </aside>
+
+    <main>
+      <section class="view" id="memberView">
+        <div class="top">
+          <div>
+            <h2>เธซเธเนเธฒเธฅเธนเธเธเนเธฒเนเธ LINE</h2>
+            <p>เธเธณเธฅเธญเธเธซเธเนเธฒ LIFF เธ—เธตเนเธฅเธนเธเธเนเธฒเธเธ”เธเธฒเธ Rich Menu เน€เธเธทเนเธญเธชเธกเธฑเธเธฃ เน€เธเนเธเนเธ•เนเธก เน€เธเธดเนเธกเนเธ•เนเธก เนเธฅเธเธเธญเธ เนเธฅเธฐเธ”เธนเธเธฃเธฐเธงเธฑเธ•เธด</p>
+          </div>
+          <a class="btn" href="#admin">เนเธเธซเธฅเธฑเธเธเนเธฒเธ</a>
+        </div>
+
+        <div class="phone">
+          <div class="phone-head">
+            <strong>เธเธดเธขเธชเธดเธฃเธดเน€เธเธกเธตเน€เธเธฉเธ•เธฃ</strong>
+            <span>LINE OA</span>
+          </div>
+          <div class="phone-body">
+            <section class="customer-screen active" id="screenHome">
+              <div class="member-card" id="memberSummary"></div>
+              <div class="quick">
+                <button data-screen="screenRegister">เธชเธกเธฑเธเธฃเธชเธกเธฒเธเธดเธ</button>
+                <button data-screen="screenPoints">เน€เธเนเธเนเธ•เนเธก</button>
+                <button data-screen="screenSubmit">เน€เธเธดเนเธกเนเธ•เนเธก</button>
+                <button data-screen="screenRedeem">เนเธฅเธเธเธญเธ</button>
+                <button data-screen="screenHistory">เธเธฃเธฐเธงเธฑเธ•เธดเธเธทเนเธญ</button>
+                <button data-screen="screenRewards">เธเธญเธเธฃเธฒเธเธงเธฑเธฅ</button>
+              </div>
+            </section>
+
+            <section class="customer-screen" id="screenRegister">
+              <div class="card">
+                <div class="card-head"><h3>เธชเธกเธฑเธเธฃเธชเธกเธฒเธเธดเธ</h3><button class="btn" data-screen="screenHome">เธเธฅเธฑเธ</button></div>
+                <div class="card-body">
+                  <form class="form" id="registerForm">
+                    <div class="field"><label for="customerName">เธเธทเนเธญ</label><input id="customerName" required placeholder="เธเธทเนเธญ-เธเธฒเธกเธชเธเธธเธฅ"></div>
+                    <div class="field"><label for="customerPhone">เน€เธเธญเธฃเนเนเธ—เธฃ</label><input id="customerPhone" required inputmode="tel" placeholder="0812345678"></div>
+                    <div class="field"><label for="customerBirthday">เธงเธฑเธเน€เธเธดเธ”</label><input id="customerBirthday" type="date"></div>
+                    <div class="field"><label for="customerArea">เธเธทเนเธเธ—เธตเนเน€เธเธฒเธฐเธเธฅเธนเธ/เธญเธณเน€เธ เธญ</label><input id="customerArea" placeholder="เน€เธเนเธ เธญ.เธเธฒเธเธเนเธญเธ"></div>
+                    <div class="field full"><button class="btn primary" type="submit">เธชเธกเธฑเธเธฃเธชเธกเธฒเธเธดเธ</button></div>
+                  </form>
+                </div>
+              </div>
+            </section>
+
+            <section class="customer-screen" id="screenPoints">
+              <div class="card">
+                <div class="card-head"><h3>เนเธ•เนเธกเธเธญเธเธเธฑเธ</h3><button class="btn" data-screen="screenHome">เธเธฅเธฑเธ</button></div>
+                <div class="card-body" id="pointsDetail"></div>
+              </div>
+            </section>
+
+            <section class="customer-screen" id="screenSubmit">
+              <div class="card">
+                <div class="card-head"><h3>เธชเนเธเธขเธญเธ”เธเธทเนเธญเน€เธเธทเนเธญเน€เธเธดเนเธกเนเธ•เนเธก</h3><button class="btn" data-screen="screenHome">เธเธฅเธฑเธ</button></div>
+                <div class="card-body">
+                  <form class="form" id="submitPurchaseForm">
+                    <div class="field"><label for="purchaseAmount">เธขเธญเธ”เธเธทเนเธญเธ•เธฒเธกเธเธดเธฅ</label><input id="purchaseAmount" required type="number" min="1" placeholder="เธเธฒเธ—"></div>
+                    <div class="field"><label for="purchaseRef">เน€เธฅเธเธเธดเธฅ/เน€เธฅเธเธเธณเธชเธฑเนเธเธเธทเนเธญ</label><input id="purchaseRef" required placeholder="เน€เธเนเธ INV-001"></div>
+                    <div class="field full"><label for="purchaseProof">เธซเธฅเธฑเธเธเธฒเธเธเธฒเธฃเธเธทเนเธญ</label><input id="purchaseProof" required placeholder="เน€เธฅเธเนเธเน€เธชเธฃเนเธ เธซเธฃเธทเธญเธเธดเธกเธเนเธงเนเธฒ เธชเนเธเธชเธฅเธดเธเนเธเนเธเธ— LINE"></div>
+                    <div class="field full"><label for="purchaseNote">เธฃเธฒเธขเธฅเธฐเน€เธญเธตเธขเธ”เน€เธเธดเนเธกเน€เธ•เธดเธก</label><textarea id="purchaseNote" placeholder="เน€เธเนเธ เธเธทเนเธญเธชเธดเธเธเนเธฒเธญเธฐเนเธฃ เธซเธฃเธทเธญเนเธเนเธเธงเนเธฒเธฃเธนเธเธชเธฅเธดเธเธชเนเธเนเธงเนเนเธเนเธเธ—"></textarea></div>
+                    <div class="notice full">เนเธ•เนเธกเธเธฐเธขเธฑเธเนเธกเนเน€เธเนเธฒเธ—เธฑเธเธ—เธต เธฃเนเธฒเธเธเธฐเธ•เธฃเธงเธเน€เธฅเธเธเธดเธฅ/เธซเธฅเธฑเธเธเธฒเธเธเนเธญเธเธญเธเธธเธกเธฑเธ•เธด เธซเธฒเธเธขเธญเธ”เนเธกเนเธ•เธฃเธ เธฃเนเธฒเธเธชเธฒเธกเธฒเธฃเธ–เธเธเธดเน€เธชเธเธฃเธฒเธขเธเธฒเธฃเนเธ”เน</div>
+                    <div class="field full"><button class="btn primary" type="submit">เธชเนเธเนเธซเนเธฃเนเธฒเธเธญเธเธธเธกเธฑเธ•เธด</button></div>
+                  </form>
+                </div>
+              </div>
+            </section>
+
+            <section class="customer-screen" id="screenRedeem">
+              <div class="card">
+                <div class="card-head"><h3>เนเธฅเธเธเธญเธ</h3><button class="btn" data-screen="screenHome">เธเธฅเธฑเธ</button></div>
+                <div class="card-body" id="redeemList"></div>
+              </div>
+            </section>
+
+            <section class="customer-screen" id="screenRewards">
+              <div class="card">
+                <div class="card-head"><h3>เธเธญเธเธฃเธฒเธเธงเธฑเธฅ</h3><button class="btn" data-screen="screenHome">เธเธฅเธฑเธ</button></div>
+                <div class="card-body" id="rewardCatalog"></div>
+              </div>
+            </section>
+
+            <section class="customer-screen" id="screenHistory">
+              <div class="card">
+                <div class="card-head"><h3>เธเธฃเธฐเธงเธฑเธ•เธด</h3><button class="btn" data-screen="screenHome">เธเธฅเธฑเธ</button></div>
+                <div class="card-body"><div class="list" id="customerHistory"></div></div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="adminView">
+        <div class="card admin-lock" id="adminLock">
+          <div class="card-head"><h3>เน€เธเนเธฒเธชเธนเนเธซเธฅเธฑเธเธเนเธฒเธเธฃเนเธฒเธ</h3></div>
+          <div class="card-body">
+            <div class="notice">เธฃเธซเธฑเธชเน€เธฃเธดเนเธกเธ•เนเธเธเธทเธญ 2312 เธเธงเธฃเน€เธเธฅเธตเนเธขเธเธเนเธฒ ADMIN_PASSCODE เนเธเนเธเธฅเน index.html เธเนเธญเธ deploy เนเธเนเธเธฒเธเธเธฃเธดเธ</div>
+            <div class="field">
+              <label for="adminPasscode">เธฃเธซเธฑเธชเธซเธฅเธฑเธเธเนเธฒเธ</label>
+              <input id="adminPasscode" type="password" autocomplete="current-password" placeholder="เธเธฃเธญเธเธฃเธซเธฑเธชเธซเธฅเธฑเธเธเนเธฒเธ">
+            </div>
+            <button class="btn primary" id="adminLoginBtn" type="button">เน€เธเนเธฒเธชเธนเนเธซเธฅเธฑเธเธเนเธฒเธ</button>
+            <div class="admin-lock-message" id="adminLockMessage" role="status" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <div class="top">
+          <div>
+            <h2>เธซเธฅเธฑเธเธเนเธฒเธเธฃเนเธฒเธ</h2>
+            <p>เธฃเนเธฒเธเนเธเนเธ”เธนเธชเธกเธฒเธเธดเธ เธญเธเธธเธกเธฑเธ•เธดเธขเธญเธ”เธเธทเนเธญ เธ•เธฃเธงเธเธเธฃเธฐเธงเธฑเธ•เธด เนเธฅเธฐเน€เธ•เธฃเธตเธขเธกเธชเนเธเธเนเธญเธกเธนเธฅเธ•เนเธญเนเธซเน LINE OA</p>
+          </div>
+          <button class="btn" id="adminLogoutBtn" type="button">เธญเธญเธเธเธฒเธเธซเธฅเธฑเธเธเนเธฒเธ</button>
+        </div>
+
+        <section class="stats">
+          <div class="stat"><span>เธชเธกเธฒเธเธดเธ</span><strong id="statCustomers">0</strong></div>
+          <div class="stat"><span>เนเธ•เนเธกเธฃเธงเธก</span><strong id="statPoints">0</strong></div>
+          <div class="stat"><span>เธฃเธญเธญเธเธธเธกเธฑเธ•เธด</span><strong id="statPending">0</strong></div>
+          <div class="stat"><span>เนเธฅเธเธเธญเธเนเธฅเนเธง</span><strong id="statRedeemed">0</strong></div>
+          <div class="stat"><span>เธเธฒเธเธเนเธญเธกเธนเธฅ</span><strong id="statDatabase">-</strong></div>
+        </section>
+
+        <section class="grid">
+          <div class="card">
+            <div class="card-head"><h3>เธเธณเธเธญเน€เธเธดเนเธกเนเธ•เนเธก</h3><span class="pill warn">เธ•เนเธญเธเธญเธเธธเธกเธฑเธ•เธดเธเนเธญเธเนเธ•เนเธกเน€เธเนเธฒ</span></div>
+            <div class="card-body"><div class="list" id="pendingList"></div></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>เธเธฑเธเธ—เธถเธเธขเธญเธ”เธเธทเนเธญเธเธฒเธเน€เธเธญเธฃเนเนเธ—เธฃ</h3><span class="pill">เธซเธเนเธฒเธฃเนเธฒเธเนเธเน</span></div>
+            <div class="card-body">
+              <form class="form" id="counterSaleForm">
+                <div class="field"><label for="counterPhone">เน€เธเธญเธฃเนเนเธ—เธฃ</label><input id="counterPhone" required inputmode="tel" placeholder="เธฅเธนเธเธเนเธฒเนเธเนเธเน€เธเธญเธฃเน"></div>
+                <div class="field"><label for="counterAmount">เธขเธญเธ”เธเธทเนเธญ</label><input id="counterAmount" required type="number" min="1" placeholder="เธเธฒเธ—"></div>
+                <div class="field full"><button class="btn primary" type="submit">เธเธฑเธเธ—เธถเธเนเธฅเธฐเน€เธเธดเนเธกเนเธ•เนเธก</button></div>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid">
+          <div class="card">
+            <div class="card-head"><h3>เธชเธกเธฒเธเธดเธเธ—เธฑเนเธเธซเธกเธ”</h3><input id="searchCustomer" placeholder="เธเนเธเธซเธฒเธเธทเนเธญ เน€เธเธญเธฃเน เธฃเธซเธฑเธชเธชเธกเธฒเธเธดเธ"></div>
+            <div class="card-body"><div class="list" id="customerList"></div></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>เนเธ•เนเธกเนเธเธฅเนเธซเธกเธ”เธญเธฒเธขเธธ</h3><span class="pill">30 เธงเธฑเธ</span></div>
+            <div class="card-body">
+              <div class="notice">เธฃเธฐเธเธเธเธฐเธกเธต Scheduled Function เธชเนเธเน€เธ•เธทเธญเธเธญเธฑเธ•เนเธเธกเธฑเธ•เธดเธงเธฑเธเธฅเธฐเธเธฃเธฑเนเธเธซเธฅเธฑเธเธ•เธฑเนเธเธเนเธฒ LINE token เธเธ Netlify เนเธฅเนเธง เธเธธเนเธกเธ”เนเธฒเธเธฅเนเธฒเธเนเธเนเธชเนเธเธเนเธณ/เธ—เธ”เธชเธญเธเธฃเธฒเธขเธเธเนเธ”เน</div>
+              <div class="list" id="expiryList"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>เธเธณเธเธญเนเธฅเธเธเธญเธ</h3><span class="pill warn">เธฃเธญเธ”เธณเน€เธเธดเธเธเธฒเธฃ</span></div>
+            <div class="card-body"><div class="list" id="redemptionList"></div></div>
+          </div>
+        </section>
+
+        <section class="grid">
+          <div class="card">
+            <div class="card-head"><h3>เน€เธเธดเนเธกเธเธญเธเธฃเธฒเธเธงเธฑเธฅ</h3><span class="pill">เนเธญเธ”เธกเธดเธเธเธฑเธ”เธเธฒเธฃเน€เธญเธ</span></div>
+            <div class="card-body">
+              <form class="form" id="rewardForm">
+                <div class="field"><label for="rewardName">เธเธทเนเธญเธเธญเธเธฃเธฒเธเธงเธฑเธฅ</label><input id="rewardName" required placeholder="เน€เธเนเธ เธชเนเธงเธเธฅเธ”เธเธธเนเธข 100 เธเธฒเธ—"></div>
+                <div class="field"><label for="rewardPoints">เนเธ•เนเธกเธ—เธตเนเนเธเน</label><input id="rewardPoints" required type="number" min="0" placeholder="เน€เธเนเธ 100"></div>
+                <div class="field"><label for="rewardStock">เธเธณเธเธงเธเธเธเน€เธซเธฅเธทเธญ</label><input id="rewardStock" placeholder="เน€เธงเนเธเธงเนเธฒเธเธ–เนเธฒเนเธกเนเธเธณเธเธฑเธ”"></div>
+                <div class="field"><label for="rewardActive">เธชเธ–เธฒเธเธฐ</label><select id="rewardActive"><option value="true">เน€เธเธดเธ”เนเธซเนเนเธฅเธ</option><option value="false">เธเธดเธ”เนเธงเนเธเนเธญเธ</option></select></div>
+                <div class="field full"><label for="rewardDescription">เธฃเธฒเธขเธฅเธฐเน€เธญเธตเธขเธ”</label><textarea id="rewardDescription" placeholder="เน€เธเธทเนเธญเธเนเธ เธซเธฃเธทเธญเธซเธกเธฒเธขเน€เธซเธ•เธธเธเธญเธเธฃเธฒเธเธงเธฑเธฅ"></textarea></div>
+                <div class="field full"><button class="btn primary" type="submit">เน€เธเธดเนเธกเธเธญเธเธฃเธฒเธเธงเธฑเธฅ</button></div>
+              </form>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>เธฃเธฒเธขเธเธฒเธฃเธเธญเธเธฃเธฒเธเธงเธฑเธฅ</h3><span class="pill">เนเธเนเธชเธ–เธฒเธเธฐ/เธฅเธ</span></div>
+            <div class="card-body"><div class="list" id="adminRewardList"></div></div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import {
+      get,
+      getDatabase,
+      ref,
+      remove,
+      set
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
+    const STORE_KEY = "line_oa_member_liff_demo_v1";
+    const ADMIN_SESSION_KEY = "piyasiri_admin_session";
+    const ADMIN_PASSCODE = "2312";
+    const LIFF_ID = "2010437975-l0M2FpDv";
+    const POINT_RATE = 100;
+    const NOTIFICATION_ENDPOINT = "/.netlify/functions/send-line-message";
+    const MOCK_LINE_USER_ID = "U-demo-line-user";
+    const firebaseConfig = {
+      apiKey: "AIzaSyC18-4OWR8kV8Rpjp5DwBZpADDxcy1NXDY",
+      authDomain: "piyasiri-member-system.firebaseapp.com",
+      databaseURL: "https://piyasiri-member-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "piyasiri-member-system",
+      storageBucket: "piyasiri-member-system.firebasestorage.app",
+      messagingSenderId: "1042938423837",
+      appId: "1:1042938423837:web:f91e69db5c74edef1674f4"
+    };
+    const firebaseApp = initializeApp(firebaseConfig);
+    const db = getDatabase(firebaseApp);
+    const cloudCollections = {
+      customers: "customers",
+      transactions: "transactions",
+      pendingPurchases: "pendingPurchases",
+      redemptions: "redemptions",
+      rewards: "rewards"
+    };
+    let currentLineUserId = MOCK_LINE_USER_ID;
+    let currentLineDisplayName = "Demo User";
+    let isLiffReady = false;
+    let isCloudReady = false;
+    const defaultRewards = [
+      { id: "discount-50", name: "เธชเนเธงเธเธฅเธ”เธชเธดเธเธเนเธฒ 50 เธเธฒเธ—", points: 50 },
+      { id: "delivery-free", name: "เธชเนเธเธเธฃเธต 1 เธเธฃเธฑเนเธ", points: 80 },
+      { id: "discount-100", name: "เธชเนเธงเธเธฅเธ”เธชเธดเธเธเนเธฒ 100 เธเธฒเธ—", points: 100 },
+      { id: "premium-gift", name: "เธเธญเธเธเธฃเธตเน€เธกเธตเธขเธกเธเธฒเธเธฃเนเธฒเธ", points: 150 }
+    ];
+
+    let state = loadState();
+
+    const $ = selector => document.querySelector(selector);
+    const els = {
+      memberView: $("#memberView"),
+      adminView: $("#adminView"),
+      navMember: $("#navMember"),
+      navAdmin: $("#navAdmin"),
+      memberSummary: $("#memberSummary"),
+      pointsDetail: $("#pointsDetail"),
+      redeemList: $("#redeemList"),
+      rewardCatalog: $("#rewardCatalog"),
+      customerHistory: $("#customerHistory"),
+      pendingList: $("#pendingList"),
+      customerList: $("#customerList"),
+      expiryList: $("#expiryList"),
+      redemptionList: $("#redemptionList"),
+      adminRewardList: $("#adminRewardList"),
+      adminPasscode: $("#adminPasscode"),
+      adminLoginBtn: $("#adminLoginBtn"),
+      adminLogoutBtn: $("#adminLogoutBtn"),
+      adminLockMessage: $("#adminLockMessage"),
+      toast: $("#toast")
+    };
+
+    function loadState() {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        parsed.customers = parsed.customers || [];
+        parsed.transactions = parsed.transactions || [];
+        parsed.pendingPurchases = parsed.pendingPurchases || [];
+        parsed.redemptions = parsed.redemptions || [];
+        parsed.rewards = parsed.rewards || [];
+        return parsed;
+      }
+      return { customers: [], transactions: [], pendingPurchases: [], redemptions: [], rewards: [] };
+    }
+
+    function saveState() {
+      localStorage.setItem(STORE_KEY, JSON.stringify(state));
+    }
+
+    async function loadCloudState() {
+      try {
+        const [customers, transactions, pendingPurchases, redemptions, rewards] = await Promise.all([
+          loadCloudCollection(cloudCollections.customers),
+          loadCloudCollection(cloudCollections.transactions),
+          loadCloudCollection(cloudCollections.pendingPurchases),
+          loadCloudCollection(cloudCollections.redemptions),
+          loadCloudCollection(cloudCollections.rewards)
+        ]);
+        state = { customers, transactions, pendingPurchases, redemptions, rewards };
+        if (!state.rewards.length) await seedDefaultRewards();
+        saveState();
+        isCloudReady = true;
+        return true;
+      } catch (error) {
+        isCloudReady = false;
+        console.warn("Realtime Database load failed; using local data", error);
+        showToast("เธขเธฑเธเน€เธเธทเนเธญเธกเธเธฒเธเธเนเธญเธกเธนเธฅเนเธกเนเนเธ”เน เนเธเนเธเนเธญเธกเธนเธฅเนเธเน€เธเธฃเธทเนเธญเธเธเธฑเนเธงเธเธฃเธฒเธง");
+        return false;
+      }
+    }
+
+    async function loadCloudCollection(collectionName) {
+      const snapshot = await get(ref(db, collectionName));
+      const value = snapshot.val() || {};
+      return Object.entries(value).map(([id, item]) => ({ id, ...item }));
+    }
+
+    async function saveCloudDoc(collectionName, item) {
+      try {
+        await set(ref(db, `${collectionName}/${item.id}`), item);
+        isCloudReady = true;
+      } catch (error) {
+        isCloudReady = false;
+        console.warn(`Realtime Database save failed for ${collectionName}`, error);
+        showToast("เธเธฑเธเธ—เธถเธเธเธถเนเธเธเธฒเธเธเนเธญเธกเธนเธฅเนเธกเนเธชเธณเน€เธฃเนเธ เนเธ•เนเน€เธเนเธเนเธเน€เธเธฃเธทเนเธญเธเนเธงเนเธเนเธญเธ");
+      }
+    }
+
+    async function deleteCloudDoc(collectionName, id) {
+      try {
+        await remove(ref(db, `${collectionName}/${id}`));
+      } catch (error) {
+        console.warn(`Realtime Database delete failed for ${collectionName}`, error);
+      }
+    }
+
+    async function clearCloudCollection(collectionName) {
+      await remove(ref(db, collectionName));
+    }
+
+    async function clearCloudState() {
+      try {
+        await Promise.all(Object.values(cloudCollections).map(clearCloudCollection));
+      } catch (error) {
+        console.warn("Realtime Database clear failed", error);
+        showToast("เธฅเนเธฒเธเธเนเธญเธกเธนเธฅเธเธเธเธฒเธเธเนเธญเธกเธนเธฅเนเธกเนเธชเธณเน€เธฃเนเธ");
+      }
+    }
+
+    async function seedDefaultRewards() {
+      state.rewards = defaultRewards.map(item => ({ ...item, active: true, stock: "", description: "" }));
+      await Promise.all(state.rewards.map(item => saveCloudDoc(cloudCollections.rewards, item)));
+    }
+
+    function now() {
+      return new Date().toISOString();
+    }
+
+    function addMonths(value, count) {
+      const date = new Date(value);
+      date.setMonth(date.getMonth() + count);
+      return date.toISOString();
+    }
+
+    function money(value) {
+      return Number(value || 0).toLocaleString("th-TH");
+    }
+
+    function memberCode() {
+      return "MB-" + String(state.customers.length + 1).padStart(4, "0");
+    }
+
+    function pointFromAmount(amount) {
+      return Math.floor(Number(amount) / POINT_RATE);
+    }
+
+    function currentCustomer() {
+      return state.customers.find(customer => customer.lineUserId === currentLineUserId) || null;
+    }
+
+    function showToast(text) {
+      els.toast.textContent = text;
+      els.toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => els.toast.classList.remove("show"), 2400);
+    }
+
+    async function sendLineNotification(customer, type, payload = {}) {
+      if (!customer?.lineUserId) return { ok: false, skipped: true, reason: "missing-line-user-id" };
+      try {
+        const response = await fetch(NOTIFICATION_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: customer.lineUserId,
+            type,
+            payload: {
+              customerName: customer.name,
+              memberCode: customer.code,
+              phone: customer.phone,
+              ...payload
+            }
+          })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || "LINE notification failed");
+        return { ok: true, result };
+      } catch (error) {
+        console.warn("LINE notification failed", error);
+        showToast("เธเธฑเธเธ—เธถเธเธชเธณเน€เธฃเนเธ เนเธ•เนเธชเนเธเนเธเนเธเน€เธ•เธทเธญเธ LINE เนเธกเนเธชเธณเน€เธฃเนเธ");
+        return { ok: false, error };
+      }
+    }
+
+    function isAdminRoute() {
+      return location.hash.startsWith("#admin");
+    }
+
+    function isAdminAuthenticated() {
+      return sessionStorage.getItem(ADMIN_SESSION_KEY) === "yes";
+    }
+
+    function setAdminAuthenticated(value) {
+      if (value) {
+        sessionStorage.setItem(ADMIN_SESSION_KEY, "yes");
+      } else {
+        sessionStorage.removeItem(ADMIN_SESSION_KEY);
+      }
+      document.body.classList.toggle("admin-authenticated", isAdminAuthenticated());
+    }
+
+    function loginAdmin() {
+      if ((els.adminPasscode?.value || "").trim() === ADMIN_PASSCODE) {
+        setAdminAuthenticated(true);
+        if (els.adminPasscode) els.adminPasscode.value = "";
+        if (els.adminLockMessage) els.adminLockMessage.textContent = "";
+        route();
+        showToast("เน€เธเนเธฒเธชเธนเนเธซเธฅเธฑเธเธเนเธฒเธเนเธฅเนเธง");
+      } else if (els.adminLockMessage) {
+        els.adminLockMessage.textContent = "เธฃเธซเธฑเธชเนเธกเนเธ–เธนเธเธ•เนเธญเธ";
+      }
+    }
+
+    function logoutAdmin() {
+      setAdminAuthenticated(false);
+      location.hash = "#member";
+      route();
+      showToast("เธญเธญเธเธเธฒเธเธซเธฅเธฑเธเธเนเธฒเธเนเธฅเนเธง");
+    }
+
+    async function initLineIdentity({ skipLogin = false } = {}) {
+      if (!window.liff) {
+        isLiffReady = false;
+        return;
+      }
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        isLiffReady = true;
+        if (!liff.isLoggedIn()) {
+          if (skipLogin) {
+            isLiffReady = false;
+            return;
+          }
+          liff.login();
+          return;
+        }
+        const profile = await liff.getProfile();
+        currentLineUserId = profile.userId;
+        currentLineDisplayName = profile.displayName || "LINE User";
+      } catch (error) {
+        isLiffReady = false;
+        console.warn("LIFF init failed; using demo mode", error);
+      }
+    }
+
+    async function seedData() {
+      const date = now();
+      state = {
+        customers: [
+          { id: crypto.randomUUID(), lineUserId: MOCK_LINE_USER_ID, code: "MB-0001", name: "เธเธธเธ“เธกเธดเธเธ•เธฃเธฒ", phone: "0812345678", birthday: "1992-08-14", area: "เธญ.เธเธฒเธเธเนเธญเธ", points: 245, totalSpend: 28600, joinedAt: date },
+          { id: crypto.randomUUID(), lineUserId: "U-demo-2", code: "MB-0002", name: "เธเธธเธ“เธเธเธเธฅ", phone: "0898881122", birthday: "", area: "เธญ.เน€เธกเธทเธญเธเธเธฑเธขเธ เธนเธกเธด", points: 96, totalSpend: 9600, joinedAt: date }
+        ],
+        transactions: [],
+        pendingPurchases: [],
+        redemptions: [],
+        rewards: state.rewards.length ? state.rewards : defaultRewards.map(item => ({ ...item, active: true, stock: "", description: "" }))
+      };
+      state.customers.forEach(customer => {
+        state.transactions.push({ id: crypto.randomUUID(), customerId: customer.id, type: "earn", amount: customer.totalSpend, points: customer.points, note: "เธขเธญเธ”เธชเธฐเธชเธกเน€เธฃเธดเนเธกเธ•เนเธ", date, expiresAt: addMonths(date, 12) });
+      });
+      saveState();
+      await Promise.all([
+        ...state.customers.map(item => saveCloudDoc(cloudCollections.customers, item)),
+        ...state.transactions.map(item => saveCloudDoc(cloudCollections.transactions, item)),
+        ...state.rewards.map(item => saveCloudDoc(cloudCollections.rewards, item))
+      ]);
+      render();
+      showToast("เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธ•เธฑเธงเธญเธขเนเธฒเธเนเธฅเนเธง");
+    }
+
+    async function clearData() {
+      if (!confirm("เธฅเนเธฒเธเธเนเธญเธกเธนเธฅเธ•เธฑเธงเธญเธขเนเธฒเธเธ—เธฑเนเธเธซเธกเธ”เนเธเน€เธเธฃเธฒเธงเนเน€เธเธญเธฃเนเธเธตเน?")) return;
+      state = { customers: [], transactions: [], pendingPurchases: [], redemptions: [], rewards: [] };
+      saveState();
+      await clearCloudState();
+      render();
+      showToast("เธฅเนเธฒเธเธเนเธญเธกเธนเธฅเนเธฅเนเธง");
+    }
+
+    function route() {
+      const hash = location.hash || "#member";
+      const params = new URLSearchParams(location.search);
+      const liffState = params.get("liff.state") || "";
+      const stateParams = liffState.includes("?") ? new URLSearchParams(liffState.split("?")[1]) : new URLSearchParams(liffState.replace(/^#/, ""));
+      const screenParam = params.get("screen") || stateParams.get("screen");
+      const isAdmin = hash.startsWith("#admin");
+      const adminAuthenticated = isAdminAuthenticated();
+      const screenByHash = {
+        "#member": "screenHome",
+        "#register": "screenRegister",
+        "#points": "screenPoints",
+        "#submit": "screenSubmit",
+        "#redeem": "screenRedeem",
+        "#history": "screenHistory",
+        "#rewards": "screenRewards"
+      };
+      const screenByParam = {
+        home: "screenHome",
+        register: "screenRegister",
+        points: "screenPoints",
+        submit: "screenSubmit",
+        redeem: "screenRedeem",
+        history: "screenHistory",
+        rewards: "screenRewards"
+      };
+      els.memberView.classList.toggle("active", !isAdmin);
+      els.adminView.classList.toggle("active", isAdmin);
+      document.body.classList.toggle("member-mode", !isAdmin);
+      document.body.classList.toggle("admin-mode", isAdmin);
+      document.body.classList.toggle("admin-authenticated", isAdmin && adminAuthenticated);
+      els.navMember.classList.toggle("active", !isAdmin);
+      els.navAdmin.classList.toggle("active", isAdmin);
+      if (isAdmin && !adminAuthenticated) {
+        els.adminPasscode?.focus();
+        return;
+      }
+      if (!isAdmin) showScreen(screenByParam[screenParam] || screenByHash[hash] || "screenHome", false);
+      render();
+    }
+
+    function showScreen(id, shouldRender = true) {
+      document.querySelectorAll(".customer-screen").forEach(screen => screen.classList.remove("active"));
+      $("#" + id).classList.add("active");
+      if (shouldRender) renderCustomer();
+    }
+
+    function renderCustomer() {
+      const customer = currentCustomer();
+      if (!customer) {
+        els.memberSummary.innerHTML = `
+          <strong>เธขเธฑเธเนเธกเนเนเธ”เนเธชเธกเธฑเธเธฃเธชเธกเธฒเธเธดเธ</strong>
+          <small>เธเธ”เธชเธกเธฑเธเธฃเธชเธกเธฒเธเธดเธเน€เธเธทเนเธญเธเธนเธ LINE user ID เธเธฑเธเน€เธเธญเธฃเนเนเธ—เธฃเนเธฅเธฐเธฃเธซเธฑเธชเธชเธกเธฒเธเธดเธ</small>
+          <small>${isLiffReady ? `เธเธณเธฅเธฑเธเนเธเนเธเธฑเธเธเธต LINE: ${escapeHtml(currentLineDisplayName)}` : "เนเธซเธกเธ”เธ—เธ”เธฅเธญเธเธเธญเธ LINE"}</small>
+        `;
+        els.pointsDetail.innerHTML = `<div class="empty">เธเธฃเธธเธ“เธฒเธชเธกเธฑเธเธฃเธชเธกเธฒเธเธดเธเธเนเธญเธเน€เธเนเธเนเธ•เนเธก</div>`;
+        els.customerHistory.innerHTML = `<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธเธฃเธฐเธงเธฑเธ•เธด</div>`;
+      } else {
+        els.memberSummary.innerHTML = `
+          <div class="item-row">
+            <div>
+              <strong>${escapeHtml(customer.name)}</strong>
+              <small>${escapeHtml(customer.code)} ยท ${escapeHtml(customer.phone)}</small>
+            </div>
+            <span class="pill">${money(customer.points)} เนเธ•เนเธก</span>
+          </div>
+          <div class="points">${money(customer.points)}</div>
+          <small>เธเธทเนเธญเธเธฃเธ 100 เธเธฒเธ— = 1 เนเธ•เนเธก เธขเธญเธ”เธเธทเนเธญเธ—เธตเนเธฅเธนเธเธเนเธฒเนเธเนเธเธ•เนเธญเธเธฃเธญเธฃเนเธฒเธเธญเธเธธเธกเธฑเธ•เธดเธเนเธญเธ</small>
+          <small>${isLiffReady ? `เธเธฑเธเธเธต LINE: ${escapeHtml(currentLineDisplayName)}` : "เนเธซเธกเธ”เธ—เธ”เธฅเธญเธเธเธญเธ LINE"}</small>
+        `;
+        const nextExpiry = state.transactions
+          .filter(item => item.customerId === customer.id && item.type === "earn")
+          .sort((a, b) => new Date(a.expiresAt) - new Date(b.expiresAt))[0];
+        els.pointsDetail.innerHTML = `
+          <div class="points">${money(customer.points)}</div>
+          <small>เธฃเธซเธฑเธชเธชเธกเธฒเธเธดเธ ${escapeHtml(customer.code)}</small>
+          <small>เนเธ•เนเธกเธเธธเธ”เธ–เธฑเธ”เนเธเธซเธกเธ”เธญเธฒเธขเธธ: ${nextExpiry ? new Date(nextExpiry.expiresAt).toLocaleDateString("th-TH") : "-"}</small>
+        `;
+        renderCustomerHistory(customer);
+      }
+      renderRewards();
+    }
+
+    function renderCustomerHistory(customer) {
+      const pendingItems = state.pendingPurchases
+        .filter(item => item.customerId === customer.id)
+        .map(item => ({ ...item, historyKind: "pending" }));
+      const transactionItems = state.transactions
+        .filter(item => item.customerId === customer.id)
+        .map(item => ({ ...item, historyKind: "transaction" }));
+      const items = [...pendingItems, ...transactionItems]
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+      if (!items.length) {
+        els.customerHistory.innerHTML = `<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธเธฃเธฐเธงเธฑเธ•เธด</div>`;
+        return;
+      }
+      els.customerHistory.innerHTML = items.map(item => {
+        if (item.historyKind === "pending") {
+          const pendingPoints = pointFromAmount(item.amount);
+          return `
+            <div class="item">
+              <div class="item-row">
+                <div>
+                  <strong>เธฃเธญเธญเธเธธเธกเธฑเธ•เธดเธขเธญเธ”เธเธทเนเธญ</strong>
+                  <small>เธงเธฑเธเธ—เธตเนเธชเนเธ: ${new Date(item.date).toLocaleString("th-TH")}</small>
+                  <small>เน€เธฅเธเธเธดเธฅ: ${escapeHtml(item.ref || "-")}</small>
+                  <small>เธขเธญเธ”เธ—เธตเนเนเธเนเธ: ${money(item.amount)} เธเธฒเธ— ยท เธเธฒเธ”เธงเนเธฒเธเธฐเนเธ”เน ${money(pendingPoints)} เนเธ•เนเธก</small>
+                  <small>เธซเธฅเธฑเธเธเธฒเธ: ${escapeHtml(item.proof || "-")}</small>
+                </div>
+                <span class="pill warn">เธฃเธญเธญเธเธธเธกเธฑเธ•เธด</span>
+              </div>
+            </div>
+          `;
+        }
+        const title = item.type === "earn" ? "เธญเธเธธเธกเธฑเธ•เธดเธขเธญเธ”เธเธทเนเธญเนเธฅเนเธง" : item.type === "refund" ? "เธเธทเธเนเธ•เนเธก" : "เนเธเนเนเธ•เนเธก";
+        const pointSign = item.type === "redeem" ? "-" : "+";
+        return `
+          <div class="item">
+            <div class="item-row">
+              <div>
+                <strong>${title}</strong>
+                <small>เธงเธฑเธเธ—เธตเนเธ—เธณเธฃเธฒเธขเธเธฒเธฃ: ${new Date(item.date).toLocaleString("th-TH")}</small>
+                ${item.ref ? `<small>เน€เธฅเธเธเธดเธฅ: ${escapeHtml(item.ref)}</small>` : ""}
+                ${item.type === "earn" ? `<small>เธขเธญเธ”เธญเธเธธเธกเธฑเธ•เธดเธเธฃเธดเธ: ${money(item.approvedAmount || item.amount)} เธเธฒเธ—</small>` : ""}
+                ${item.type === "earn" && item.requestedAmount && item.requestedAmount !== item.approvedAmount ? `<small>เธขเธญเธ”เธ—เธตเนเนเธเนเธ ${money(item.requestedAmount)} เธเธฒเธ— ยท เธฃเนเธฒเธเธเธฃเธฑเธเน€เธเนเธ ${money(item.approvedAmount)} เธเธฒเธ—</small>` : ""}
+                <small>${escapeHtml(item.note || "-")}</small>
+                ${item.adminNote ? `<small>เธซเธกเธฒเธขเน€เธซเธ•เธธเธฃเนเธฒเธ: ${escapeHtml(item.adminNote)}</small>` : ""}
+              </div>
+              <span class="pill">${pointSign}${money(item.points)} เนเธ•เนเธก</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderRewards() {
+      const customer = currentCustomer();
+      const activeRewards = state.rewards.filter(reward => reward.active !== false);
+      const html = activeRewards.map(reward => `
+        <div class="item">
+          <div class="item-row">
+            <div>
+              <strong>${escapeHtml(reward.name)}</strong>
+              <small>เนเธเน ${money(reward.points)} เนเธ•เนเธก${reward.stock ? ` ยท เธเธเน€เธซเธฅเธทเธญ ${escapeHtml(reward.stock)}` : ""}</small>
+              ${reward.description ? `<small>${escapeHtml(reward.description)}</small>` : ""}
+            </div>
+            <button class="btn ${customer && customer.points >= reward.points ? "primary" : ""}" data-redeem="${reward.id}" ${!customer || customer.points < reward.points ? "disabled" : ""}>${customer && customer.points >= reward.points ? "เนเธฅเธ" : "เนเธ•เนเธกเนเธกเนเธเธญ"}</button>
+          </div>
+        </div>
+      `).join("");
+      els.redeemList.innerHTML = html || `<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธเธญเธเธฃเธฒเธเธงเธฑเธฅ</div>`;
+      els.rewardCatalog.innerHTML = html || `<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธเธญเธเธฃเธฒเธเธงเธฑเธฅ</div>`;
+      document.querySelectorAll("[data-redeem]").forEach(button => button.addEventListener("click", () => redeemReward(button.dataset.redeem)));
+    }
+
+    function renderAdmin() {
+      const totalPoints = state.customers.reduce((sum, customer) => sum + customer.points, 0);
+      $("#statCustomers").textContent = money(state.customers.length);
+      $("#statPoints").textContent = money(totalPoints);
+      $("#statPending").textContent = money(state.pendingPurchases.length);
+      $("#statRedeemed").textContent = money(state.redemptions.length);
+      $("#statDatabase").textContent = isCloudReady ? "เน€เธเธทเนเธญเธกเนเธฅเนเธง" : "เนเธเน€เธเธฃเธทเนเธญเธ";
+      renderPending();
+      renderCustomers();
+      renderExpiry();
+      renderRedemptions();
+      renderAdminRewards();
+    }
+
+    function renderPending() {
+      if (!state.pendingPurchases.length) {
+        els.pendingList.innerHTML = `<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธฃเธฒเธขเธเธฒเธฃเธฃเธญเธญเธเธธเธกเธฑเธ•เธด</div>`;
+        return;
+      }
+      els.pendingList.innerHTML = state.pendingPurchases.map(item => {
+        const customer = state.customers.find(entry => entry.id === item.customerId);
+        const approvedAmount = item.approvedAmount || item.amount;
+        const points = pointFromAmount(approvedAmount);
+        return `
+          <div class="item">
+            <div class="item-row">
+              <div>
+                <strong>${escapeHtml(customer?.name || "เนเธกเนเธเธเธชเธกเธฒเธเธดเธ")}</strong>
+                <small>${escapeHtml(customer?.phone || "-")} ยท เธฅเธนเธเธเนเธฒเนเธเนเธ ${money(item.amount)} เธเธฒเธ—</small>
+              </div>
+              <span class="pill warn">เธฃเธญเธญเธเธธเธกเธฑเธ•เธด</span>
+            </div>
+            <small>เน€เธฅเธเธเธดเธฅ: ${escapeHtml(item.ref || "-")}</small>
+            <small>เธซเธฅเธฑเธเธเธฒเธ: ${escapeHtml(item.proof || "-")}</small>
+            <small>เธซเธกเธฒเธขเน€เธซเธ•เธธ: ${escapeHtml(item.note || "-")}</small>
+            <div class="form">
+              <div class="field">
+                <label for="approved-${item.id}">เธขเธญเธ”เธญเธเธธเธกเธฑเธ•เธดเธเธฃเธดเธ</label>
+                <input id="approved-${item.id}" data-approved-amount="${item.id}" type="number" min="0" value="${approvedAmount}">
+              </div>
+              <div class="field">
+                <label for="admin-note-${item.id}">เธซเธกเธฒเธขเน€เธซเธ•เธธเนเธญเธ”เธกเธดเธ</label>
+                <input id="admin-note-${item.id}" data-admin-note="${item.id}" value="${escapeAttr(item.adminNote || "")}" placeholder="เน€เธเนเธ เธเธฃเธฑเธเธขเธญเธ”เธ•เธฒเธกเธเธดเธฅเธเธฃเธดเธ">
+              </div>
+            </div>
+            <div class="notice">เธ•เธฃเธงเธเธขเธญเธ”เธเธทเนเธญเธเธฑเธเน€เธฅเธเธเธดเธฅ/เธชเธฅเธดเธเธเนเธญเธเธเธ”เธญเธเธธเธกเธฑเธ•เธด เธฃเธฐเธเธเธเธฐเธเธดเธ”เนเธ•เนเธกเธเธฒเธเธขเธญเธ”เธญเธเธธเธกเธฑเธ•เธดเธเธฃเธดเธ: ${money(points)} เนเธ•เนเธก</div>
+            <div class="actions">
+              <button class="btn primary" data-approve="${item.id}">เธญเธเธธเธกเธฑเธ•เธด</button>
+              <button class="btn danger" data-reject="${item.id}">เธเธเธดเน€เธชเธ</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+      document.querySelectorAll("[data-approve]").forEach(button => button.addEventListener("click", () => approvePurchase(button.dataset.approve)));
+      document.querySelectorAll("[data-reject]").forEach(button => button.addEventListener("click", () => rejectPurchase(button.dataset.reject)));
+    }
+
+    function renderCustomers() {
+      const query = $("#searchCustomer").value.trim().toLowerCase();
+      const customers = state.customers.filter(customer => `${customer.name} ${customer.phone} ${customer.code}`.toLowerCase().includes(query));
+      if (!customers.length) {
+        els.customerList.innerHTML = `<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธชเธกเธฒเธเธดเธ</div>`;
+        return;
+      }
+      els.customerList.innerHTML = customers.map(customer => `
+        <div class="item">
+          <div class="item-row">
+            <div>
+              <strong>${escapeHtml(customer.name)}</strong>
+              <small>${escapeHtml(customer.code)} ยท ${escapeHtml(customer.phone)} ยท ${escapeHtml(customer.area || customer.province || "-")}</small>
+            </div>
+            <span class="pill">${money(customer.points)} เนเธ•เนเธก</span>
+          </div>
+          <small>เธขเธญเธ”เธเธทเนเธญเธฃเธงเธก ${money(customer.totalSpend)} เธเธฒเธ—</small>
+        </div>
+      `).join("");
+    }
+
+    function renderExpiry() {
+      const start = Date.now();
+      const end = start + 30 * 24 * 60 * 60 * 1000;
+      const items = state.transactions.filter(item => {
+        if (item.type !== "earn" || !item.expiresAt) return false;
+        const expiry = new Date(item.expiresAt).getTime();
+        return expiry >= start && expiry <= end;
+      });
+      if (!items.length) {
+        els.expiryList.innerHTML = `<div class="empty">เนเธกเนเธกเธตเนเธ•เนเธกเธซเธกเธ”เธญเธฒเธขเธธเนเธ 30 เธงเธฑเธ</div>`;
+        return;
+      }
+      els.expiryList.innerHTML = items.map(item => {
+        const customer = state.customers.find(entry => entry.id === item.customerId);
+        return `
+          <div class="item">
+            <div class="item-row">
+              <div>
+                <strong>${escapeHtml(customer?.name || "-")}</strong>
+                <small>${escapeHtml(customer?.phone || "-")} ยท ${money(item.points)} เนเธ•เนเธกเธเธฐเธซเธกเธ”เธญเธฒเธขเธธเธงเธฑเธเธ—เธตเน ${new Date(item.expiresAt).toLocaleDateString("th-TH")}</small>
+                ${item.expiryNotifiedAt ? `<small>เนเธเนเธเน€เธ•เธทเธญเธเธฅเนเธฒเธชเธธเธ”: ${new Date(item.expiryNotifiedAt).toLocaleString("th-TH")}</small>` : ""}
+              </div>
+              <button class="btn primary" data-notify-expiry="${item.id}">เนเธเนเธเน€เธ•เธทเธญเธ LINE</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+      document.querySelectorAll("[data-notify-expiry]").forEach(button => {
+        button.addEventListener("click", () => notifyExpiringPoints(button.dataset.notifyExpiry));
+      });
+    }
+
+    function renderRedemptions() {
+      if (!state.redemptions.length) {
+        els.redemptionList.innerHTML = `<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธเธณเธเธญเนเธฅเธเธเธญเธ</div>`;
+        return;
+      }
+      els.redemptionList.innerHTML = [...state.redemptions]
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .map(item => {
+          const customer = state.customers.find(entry => entry.id === item.customerId);
+          const statusText = item.status === "completed" ? "เธเธฑเธ”เธเธฒเธฃเนเธฅเนเธง" : item.status === "cancelled" ? "เธขเธเน€เธฅเธดเธ" : "เธฃเธญเธ”เธณเน€เธเธดเธเธเธฒเธฃ";
+          return `
+            <div class="item">
+              <div class="item-row">
+                <div>
+                  <strong>${escapeHtml(item.rewardName || "-")}</strong>
+                  <small>${escapeHtml(customer?.name || "-")} ยท ${escapeHtml(customer?.phone || "-")} ยท เนเธเน ${money(item.points)} เนเธ•เนเธก</small>
+                </div>
+                <span class="pill ${item.status === "requested" ? "warn" : ""}">${statusText}</span>
+              </div>
+              <small>${new Date(item.date).toLocaleString("th-TH")}</small>
+              ${item.refundedAt ? `<small>เธเธทเธเนเธ•เนเธกเนเธฅเนเธง: ${new Date(item.refundedAt).toLocaleString("th-TH")}</small>` : ""}
+              <div class="actions">
+                <button class="btn primary" data-complete-redemption="${item.id}" ${item.status !== "requested" ? "disabled" : ""}>เธเธฑเธ”เธเธฒเธฃเนเธฅเนเธง</button>
+                <button class="btn danger" data-cancel-redemption="${item.id}" ${item.status !== "requested" ? "disabled" : ""}>เธขเธเน€เธฅเธดเธเนเธฅเธฐเธเธทเธเนเธ•เนเธก</button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      document.querySelectorAll("[data-complete-redemption]").forEach(button => {
+        button.addEventListener("click", () => updateRedemptionStatus(button.dataset.completeRedemption, "completed"));
+      });
+      document.querySelectorAll("[data-cancel-redemption]").forEach(button => {
+        button.addEventListener("click", () => updateRedemptionStatus(button.dataset.cancelRedemption, "cancelled"));
+      });
+    }
+
+    function renderAdminRewards() {
+      if (!state.rewards.length) {
+        els.adminRewardList.innerHTML = `<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธเธญเธเธฃเธฒเธเธงเธฑเธฅ</div>`;
+        return;
+      }
+      els.adminRewardList.innerHTML = state.rewards
+        .sort((a, b) => Number(a.points) - Number(b.points))
+        .map(reward => `
+          <div class="item">
+            <div class="item-row">
+              <div>
+                <strong>${escapeHtml(reward.name)}</strong>
+                <small>เนเธเน ${money(reward.points)} เนเธ•เนเธก${reward.stock ? ` ยท เธเธเน€เธซเธฅเธทเธญ ${escapeHtml(reward.stock)}` : ""}</small>
+                ${reward.description ? `<small>${escapeHtml(reward.description)}</small>` : ""}
+              </div>
+              <span class="pill ${reward.active === false ? "warn" : ""}">${reward.active === false ? "เธเธดเธ”" : "เน€เธเธดเธ”"}</span>
+            </div>
+            <div class="actions">
+              <button class="btn" data-toggle-reward="${reward.id}">${reward.active === false ? "เน€เธเธดเธ”เนเธซเนเนเธฅเธ" : "เธเธดเธ”เนเธงเนเธเนเธญเธ"}</button>
+              <button class="btn danger" data-delete-reward="${reward.id}">เธฅเธ</button>
+            </div>
+          </div>
+        `).join("");
+      document.querySelectorAll("[data-toggle-reward]").forEach(button => {
+        button.addEventListener("click", () => toggleReward(button.dataset.toggleReward));
+      });
+      document.querySelectorAll("[data-delete-reward]").forEach(button => {
+        button.addEventListener("click", () => deleteReward(button.dataset.deleteReward));
+      });
+    }
+
+    async function registerCustomer(event) {
+      event.preventDefault();
+      const phone = $("#customerPhone").value.trim();
+      const existing = state.customers.find(customer => customer.phone === phone || customer.lineUserId === currentLineUserId);
+      if (existing) {
+        existing.lineUserId = currentLineUserId;
+        existing.name = $("#customerName").value.trim();
+        existing.birthday = $("#customerBirthday").value;
+        existing.area = $("#customerArea").value.trim();
+        await saveCloudDoc(cloudCollections.customers, existing);
+        showToast("เธญเธฑเธเน€เธ”เธ•เธเนเธญเธกเธนเธฅเธชเธกเธฒเธเธดเธเนเธฅเนเธง");
+      } else {
+        const customer = {
+          id: crypto.randomUUID(),
+          lineUserId: currentLineUserId,
+          code: memberCode(),
+          name: $("#customerName").value.trim(),
+          phone,
+          birthday: $("#customerBirthday").value,
+          area: $("#customerArea").value.trim(),
+          points: 0,
+          totalSpend: 0,
+          joinedAt: now()
+        };
+        state.customers.push(customer);
+        await saveCloudDoc(cloudCollections.customers, customer);
+        showToast("เธชเธกเธฑเธเธฃเธชเธกเธฒเธเธดเธเธชเธณเน€เธฃเนเธ");
+      }
+      saveState();
+      event.currentTarget.reset();
+      showScreen("screenHome");
+    }
+
+    async function submitPurchase(event) {
+      event.preventDefault();
+      const customer = currentCustomer();
+      if (!customer) {
+        showToast("เธเธฃเธธเธ“เธฒเธชเธกเธฑเธเธฃเธชเธกเธฒเธเธดเธเธเนเธญเธ");
+        return;
+      }
+      const refValue = $("#purchaseRef").value.trim();
+      const proofValue = $("#purchaseProof").value.trim();
+      if (!refValue || !proofValue) {
+        showToast("เธเธฃเธธเธ“เธฒเธเธฃเธญเธเน€เธฅเธเธเธดเธฅเนเธฅเธฐเธซเธฅเธฑเธเธเธฒเธเธเธฒเธฃเธเธทเนเธญ");
+        return;
+      }
+      const duplicateRef = [...state.pendingPurchases, ...state.transactions].some(item => item.ref && item.ref.toLowerCase() === refValue.toLowerCase());
+      if (duplicateRef) {
+        showToast("เน€เธฅเธเธเธดเธฅเธเธตเนเธ–เธนเธเธชเนเธเธซเธฃเธทเธญเธชเธฐเธชเธกเนเธ•เนเธกเนเธฅเนเธง");
+        return;
+      }
+      const pendingPurchase = {
+        id: crypto.randomUUID(),
+        customerId: customer.id,
+        amount: Number($("#purchaseAmount").value),
+        ref: refValue,
+        proof: proofValue,
+        note: $("#purchaseNote").value.trim(),
+        status: "pending",
+        date: now()
+      };
+      state.pendingPurchases.push(pendingPurchase);
+      await saveCloudDoc(cloudCollections.pendingPurchases, pendingPurchase);
+      saveState();
+      event.currentTarget.reset();
+      showToast("เธชเนเธเธขเธญเธ”เธเธทเนเธญเนเธฅเนเธง เธฃเธญเธฃเนเธฒเธเธญเธเธธเธกเธฑเธ•เธด");
+      showScreen("screenHome");
+    }
+
+    function addApprovedPurchase(customer, amount, note, meta = {}) {
+      const points = pointFromAmount(amount);
+      customer.points += points;
+      customer.totalSpend += amount;
+      const transaction = { id: crypto.randomUUID(), customerId: customer.id, type: "earn", amount, points, note, date: now(), expiresAt: addMonths(now(), 12), ...meta };
+      state.transactions.push(transaction);
+      return { points, transaction };
+    }
+
+    async function approvePurchase(id) {
+      const request = state.pendingPurchases.find(item => item.id === id);
+      const customer = state.customers.find(item => item.id === request?.customerId);
+      if (!request || !customer) return;
+      const approvedAmountInput = document.querySelector(`[data-approved-amount="${id}"]`);
+      const adminNoteInput = document.querySelector(`[data-admin-note="${id}"]`);
+      const approvedAmount = Math.max(0, Number(approvedAmountInput?.value || request.amount));
+      const adminNote = adminNoteInput?.value.trim() || "";
+      if (!approvedAmount) {
+        showToast("เธเธฃเธธเธ“เธฒเธฃเธฐเธเธธเธขเธญเธ”เธญเธเธธเธกเธฑเธ•เธดเธเธฃเธดเธ");
+        return;
+      }
+      const { points, transaction } = addApprovedPurchase(customer, approvedAmount, "เธฃเนเธฒเธเธญเธเธธเธกเธฑเธ•เธดเธขเธญเธ”เธเธทเนเธญ", {
+        ref: request.ref || "",
+        proof: request.proof || "",
+        requestedAmount: request.amount,
+        approvedAmount,
+        adminNote
+      });
+      state.pendingPurchases = state.pendingPurchases.filter(item => item.id !== id);
+      saveState();
+      await Promise.all([
+        saveCloudDoc(cloudCollections.customers, customer),
+        saveCloudDoc(cloudCollections.transactions, transaction),
+        deleteCloudDoc(cloudCollections.pendingPurchases, id)
+      ]);
+      await sendLineNotification(customer, "approved_points", {
+        points,
+        amount: approvedAmount,
+        requestedAmount: request.amount,
+        ref: request.ref || "",
+        expiresAt: transaction.expiresAt,
+        totalPoints: customer.points
+      });
+      render();
+      showToast(`เธญเธเธธเธกเธฑเธ•เธดเนเธฅเนเธง +${points} เนเธ•เนเธก`);
+    }
+
+    async function rejectPurchase(id) {
+      state.pendingPurchases = state.pendingPurchases.filter(item => item.id !== id);
+      saveState();
+      await deleteCloudDoc(cloudCollections.pendingPurchases, id);
+      render();
+      showToast("เธเธเธดเน€เธชเธเธฃเธฒเธขเธเธฒเธฃเนเธฅเนเธง");
+    }
+
+    async function counterSale(event) {
+      event.preventDefault();
+      const customer = state.customers.find(item => item.phone === $("#counterPhone").value.trim());
+      if (!customer) {
+        showToast("เนเธกเนเธเธเธชเธกเธฒเธเธดเธเธเธฒเธเน€เธเธญเธฃเนเธเธตเน");
+        return;
+      }
+      const { points, transaction } = addApprovedPurchase(customer, Number($("#counterAmount").value), "เธเธฑเธเธ—เธถเธเธเธฒเธเธซเธเนเธฒเธฃเนเธฒเธเธ”เนเธงเธขเน€เธเธญเธฃเนเนเธ—เธฃ");
+      saveState();
+      await Promise.all([
+        saveCloudDoc(cloudCollections.customers, customer),
+        saveCloudDoc(cloudCollections.transactions, transaction)
+      ]);
+      await sendLineNotification(customer, "approved_points", {
+        points,
+        amount: transaction.amount,
+        ref: "เธเธฑเธเธ—เธถเธเธซเธเนเธฒเธฃเนเธฒเธ",
+        expiresAt: transaction.expiresAt,
+        totalPoints: customer.points
+      });
+      event.currentTarget.reset();
+      render();
+      showToast(`เธเธฑเธเธ—เธถเธเนเธฅเนเธง +${points} เนเธ•เนเธก`);
+    }
+
+    async function redeemReward(id) {
+      const reward = state.rewards.find(item => item.id === id && item.active !== false);
+      const customer = currentCustomer();
+      if (!reward || !customer) return;
+      if (customer.points < reward.points) {
+        showToast("เนเธ•เนเธกเนเธกเนเธเธญเธชเธณเธซเธฃเธฑเธเนเธฅเธเธฃเธฒเธเธงเธฑเธฅเธเธตเน");
+        return;
+      }
+      customer.points -= reward.points;
+      const transaction = { id: crypto.randomUUID(), customerId: customer.id, type: "redeem", points: reward.points, amount: 0, note: `เนเธฅเธ ${reward.name}`, date: now() };
+      const redemption = { id: crypto.randomUUID(), customerId: customer.id, rewardId: reward.id, rewardName: reward.name, points: reward.points, transactionId: transaction.id, date: now(), status: "requested" };
+      state.redemptions.push(redemption);
+      state.transactions.push(transaction);
+      saveState();
+      await Promise.all([
+        saveCloudDoc(cloudCollections.customers, customer),
+        saveCloudDoc(cloudCollections.redemptions, redemption),
+        saveCloudDoc(cloudCollections.transactions, transaction)
+      ]);
+      render();
+      showToast("เธชเนเธเธเธณเธเธญเนเธฅเธเธเธญเธเนเธฅเนเธง");
+    }
+
+    async function updateRedemptionStatus(id, status) {
+      const redemption = state.redemptions.find(item => item.id === id);
+      const customer = state.customers.find(item => item.id === redemption?.customerId);
+      if (!redemption || !customer || redemption.status !== "requested") return;
+      redemption.status = status;
+      redemption.updatedAt = now();
+      const writes = [];
+      if (status === "cancelled") {
+        customer.points += Number(redemption.points || 0);
+        redemption.refundedAt = now();
+        const refundTransaction = {
+          id: crypto.randomUUID(),
+          customerId: customer.id,
+          type: "refund",
+          points: Number(redemption.points || 0),
+          amount: 0,
+          note: `เธเธทเธเนเธ•เนเธกเธเธฒเธเธเธณเธเธญเนเธฅเธ ${redemption.rewardName}`,
+          redemptionId: redemption.id,
+          date: redemption.refundedAt
+        };
+        state.transactions.push(refundTransaction);
+        writes.push(saveCloudDoc(cloudCollections.customers, customer));
+        writes.push(saveCloudDoc(cloudCollections.transactions, refundTransaction));
+      }
+      writes.push(saveCloudDoc(cloudCollections.redemptions, redemption));
+      saveState();
+      await Promise.all(writes);
+      if (status === "completed") {
+        await sendLineNotification(customer, "redeem_completed", {
+          rewardName: redemption.rewardName,
+          points: redemption.points,
+          totalPoints: customer?.points || 0
+        });
+      } else if (status === "cancelled") {
+        await sendLineNotification(customer, "redeem_cancelled", {
+          rewardName: redemption.rewardName,
+          points: redemption.points,
+          totalPoints: customer.points
+        });
+      }
+      render();
+      showToast(status === "completed" ? "เธญเธฑเธเน€เธ”เธ•เธงเนเธฒเธเธฑเธ”เธเธฒเธฃเนเธฅเนเธง" : "เธขเธเน€เธฅเธดเธเธเธณเธเธญเนเธฅเธฐเธเธทเธเนเธ•เนเธกเนเธฅเนเธง");
+    }
+
+    async function notifyExpiringPoints(id) {
+      const transaction = state.transactions.find(item => item.id === id);
+      const customer = state.customers.find(item => item.id === transaction?.customerId);
+      if (!transaction || !customer) return;
+      const result = await sendLineNotification(customer, "points_expiring", {
+        points: transaction.points,
+        expiresAt: transaction.expiresAt,
+        totalPoints: customer.points
+      });
+      if (result.ok) {
+        transaction.expiryNotifiedAt = now();
+        saveState();
+        await saveCloudDoc(cloudCollections.transactions, transaction);
+        render();
+        showToast("เธชเนเธเน€เธ•เธทเธญเธเนเธ•เนเธกเนเธเธฅเนเธซเธกเธ”เธญเธฒเธขเธธเนเธฅเนเธง");
+      }
+    }
+
+    async function addReward(event) {
+      event.preventDefault();
+      const reward = {
+        id: crypto.randomUUID(),
+        name: $("#rewardName").value.trim(),
+        points: Number($("#rewardPoints").value),
+        stock: $("#rewardStock").value.trim(),
+        active: $("#rewardActive").value === "true",
+        description: $("#rewardDescription").value.trim(),
+        createdAt: now()
+      };
+      state.rewards.push(reward);
+      saveState();
+      await saveCloudDoc(cloudCollections.rewards, reward);
+      event.currentTarget.reset();
+      render();
+      showToast("เน€เธเธดเนเธกเธเธญเธเธฃเธฒเธเธงเธฑเธฅเนเธฅเนเธง");
+    }
+
+    async function toggleReward(id) {
+      const reward = state.rewards.find(item => item.id === id);
+      if (!reward) return;
+      reward.active = reward.active === false;
+      reward.updatedAt = now();
+      saveState();
+      await saveCloudDoc(cloudCollections.rewards, reward);
+      render();
+      showToast(reward.active ? "เน€เธเธดเธ”เนเธซเนเนเธฅเธเนเธฅเนเธง" : "เธเธดเธ”เธเธญเธเธฃเธฒเธเธงเธฑเธฅเนเธฅเนเธง");
+    }
+
+    async function deleteReward(id) {
+      if (!confirm("เธฅเธเธเธญเธเธฃเธฒเธเธงเธฑเธฅเธเธตเน?")) return;
+      state.rewards = state.rewards.filter(item => item.id !== id);
+      saveState();
+      await deleteCloudDoc(cloudCollections.rewards, id);
+      render();
+      showToast("เธฅเธเธเธญเธเธฃเธฒเธเธงเธฑเธฅเนเธฅเนเธง");
+    }
+
+    function render() {
+      renderCustomer();
+      renderAdmin();
+    }
+
+    function escapeHtml(value) {
+      return String(value || "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replace(/`/g, "&#096;");
+    }
+
+    window.addEventListener("hashchange", route);
+    document.querySelectorAll("[data-screen]").forEach(button => button.addEventListener("click", () => showScreen(button.dataset.screen)));
+    $("#registerForm").addEventListener("submit", registerCustomer);
+    $("#submitPurchaseForm").addEventListener("submit", submitPurchase);
+    $("#counterSaleForm").addEventListener("submit", counterSale);
+    $("#rewardForm").addEventListener("submit", addReward);
+    $("#seedBtn")?.addEventListener("click", seedData);
+    $("#clearBtn")?.addEventListener("click", clearData);
+    $("#searchCustomer").addEventListener("input", renderCustomers);
+    els.adminLoginBtn?.addEventListener("click", loginAdmin);
+    els.adminPasscode?.addEventListener("keydown", event => {
+      if (event.key === "Enter") loginAdmin();
+    });
+    els.adminLogoutBtn?.addEventListener("click", logoutAdmin);
+
+    async function boot() {
+      await initLineIdentity({ skipLogin: isAdminRoute() });
+      await loadCloudState();
+      route();
+    }
+
+    boot();
+  </script>
+</body>
+</html>
+
