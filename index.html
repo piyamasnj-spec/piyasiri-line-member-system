@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="th">
 <head>
   <meta charset="utf-8">
@@ -513,55 +513,55 @@
       <div class="brand">
         <div class="logo">LINE</div>
         <div>
-          <h1>เธฃเธฐเธเธเธชเธกเธฒเธเธดเธ LINE OA</h1>
-          <p>LIFF + เธซเธฅเธฑเธเธเนเธฒเธเธฃเนเธฒเธ</p>
+          <h1>ระบบสมาชิก LINE OA</h1>
+          <p>LIFF + หลังบ้านร้าน</p>
         </div>
       </div>
       <nav>
-        <a href="#member" id="navMember">เธซเธเนเธฒเธฅเธนเธเธเนเธฒเนเธ LINE</a>
-        <a href="#admin" id="navAdmin">เธซเธฅเธฑเธเธเนเธฒเธเธฃเนเธฒเธ</a>
+        <a href="#member" id="navMember">หน้าลูกค้าใน LINE</a>
+        <a href="#admin" id="navAdmin">หลังบ้านร้าน</a>
       </nav>
-      <div class="side-note">เธ•เนเธเนเธเธเธเธตเนเนเธเนเธเนเธญเธกเธนเธฅเนเธเน€เธเธฃเธฒเธงเนเน€เธเธญเธฃเนเธเนเธญเธ เน€เธกเธทเนเธญเธเธณเนเธเนเธเนเธเธฃเธดเธเธ•เนเธญเธเน€เธเธทเนเธญเธกเธเธฒเธเธเนเธญเธกเธนเธฅเนเธฅเธฐ LINE Messaging API</div>
+      <div class="side-note">ต้นแบบนี้ใช้ข้อมูลในเบราว์เซอร์ก่อน เมื่อนำไปใช้จริงต้องเชื่อมฐานข้อมูลและ LINE Messaging API</div>
     </aside>
 
     <main>
       <section class="view" id="memberView">
         <div class="top">
           <div>
-            <h2>เธซเธเนเธฒเธฅเธนเธเธเนเธฒเนเธ LINE</h2>
-            <p>เธเธณเธฅเธญเธเธซเธเนเธฒ LIFF เธ—เธตเนเธฅเธนเธเธเนเธฒเธเธ”เธเธฒเธ Rich Menu เน€เธเธทเนเธญเธชเธกเธฑเธเธฃ เน€เธเนเธเนเธ•เนเธก เน€เธเธดเนเธกเนเธ•เนเธก เนเธฅเธเธเธญเธ เนเธฅเธฐเธ”เธนเธเธฃเธฐเธงเธฑเธ•เธด</p>
+            <h2>หน้าลูกค้าใน LINE</h2>
+            <p>จำลองหน้า LIFF ที่ลูกค้ากดจาก Rich Menu เพื่อสมัคร เช็คแต้ม เพิ่มแต้ม แลกของ และดูประวัติ</p>
           </div>
-          <a class="btn" href="#admin">เนเธเธซเธฅเธฑเธเธเนเธฒเธ</a>
+          <a class="btn" href="#admin">ไปหลังบ้าน</a>
         </div>
 
         <div class="phone">
           <div class="phone-head">
-            <strong>เธเธดเธขเธชเธดเธฃเธดเน€เธเธกเธตเน€เธเธฉเธ•เธฃ</strong>
+            <strong>ปิยสิริเคมีเกษตร</strong>
             <span>LINE OA</span>
           </div>
           <div class="phone-body">
             <section class="customer-screen active" id="screenHome">
               <div class="member-card" id="memberSummary"></div>
               <div class="quick">
-                <button data-screen="screenRegister">เธชเธกเธฑเธเธฃเธชเธกเธฒเธเธดเธ</button>
-                <button data-screen="screenPoints">เน€เธเนเธเนเธ•เนเธก</button>
-                <button data-screen="screenSubmit">เน€เธเธดเนเธกเนเธ•เนเธก</button>
-                <button data-screen="screenRedeem">เนเธฅเธเธเธญเธ</button>
-                <button data-screen="screenHistory">เธเธฃเธฐเธงเธฑเธ•เธดเธเธทเนเธญ</button>
-                <button data-screen="screenRewards">เธเธญเธเธฃเธฒเธเธงเธฑเธฅ</button>
+                <button data-screen="screenRegister">สมัครสมาชิก</button>
+                <button data-screen="screenPoints">เช็คแต้ม</button>
+                <button data-screen="screenSubmit">เพิ่มแต้ม</button>
+                <button data-screen="screenRedeem">แลกของ</button>
+                <button data-screen="screenHistory">ประวัติซื้อ</button>
+                <button data-screen="screenRewards">ของรางวัล</button>
               </div>
             </section>
 
             <section class="customer-screen" id="screenRegister">
               <div class="card">
-                <div class="card-head"><h3>เธชเธกเธฑเธเธฃเธชเธกเธฒเธเธดเธ</h3><button class="btn" data-screen="screenHome">เธเธฅเธฑเธ</button></div>
+                <div class="card-head"><h3>สมัครสมาชิก</h3><button class="btn" data-screen="screenHome">กลับ</button></div>
                 <div class="card-body">
                   <form class="form" id="registerForm">
-                    <div class="field"><label for="customerName">เธเธทเนเธญ</label><input id="customerName" required placeholder="เธเธทเนเธญ-เธเธฒเธกเธชเธเธธเธฅ"></div>
-                    <div class="field"><label for="customerPhone">เน€เธเธญเธฃเนเนเธ—เธฃ</label><input id="customerPhone" required inputmode="tel" placeholder="0812345678"></div>
-                    <div class="field"><label for="customerBirthday">เธงเธฑเธเน€เธเธดเธ”</label><input id="customerBirthday" type="date"></div>
-                    <div class="field"><label for="customerArea">เธเธทเนเธเธ—เธตเนเน€เธเธฒเธฐเธเธฅเธนเธ/เธญเธณเน€เธ เธญ</label><input id="customerArea" placeholder="เน€เธเนเธ เธญ.เธเธฒเธเธเนเธญเธ"></div>
-                    <div class="field full"><button class="btn primary" type="submit">เธชเธกเธฑเธเธฃเธชเธกเธฒเธเธดเธ</button></div>
+                    <div class="field"><label for="customerName">ชื่อ</label><input id="customerName" required placeholder="ชื่อ-นามสกุล"></div>
+                    <div class="field"><label for="customerPhone">เบอร์โทร</label><input id="customerPhone" required inputmode="tel" placeholder="0812345678"></div>
+                    <div class="field"><label for="customerBirthday">วันเกิด</label><input id="customerBirthday" type="date"></div>
+                    <div class="field"><label for="customerArea">พื้นที่เพาะปลูก/อำเภอ</label><input id="customerArea" placeholder="เช่น อ.ปากช่อง"></div>
+                    <div class="field full"><button class="btn primary" type="submit">สมัครสมาชิก</button></div>
                   </form>
                 </div>
               </div>
@@ -569,22 +569,22 @@
 
             <section class="customer-screen" id="screenPoints">
               <div class="card">
-                <div class="card-head"><h3>เนเธ•เนเธกเธเธญเธเธเธฑเธ</h3><button class="btn" data-screen="screenHome">เธเธฅเธฑเธ</button></div>
+                <div class="card-head"><h3>แต้มของฉัน</h3><button class="btn" data-screen="screenHome">กลับ</button></div>
                 <div class="card-body" id="pointsDetail"></div>
               </div>
             </section>
 
             <section class="customer-screen" id="screenSubmit">
               <div class="card">
-                <div class="card-head"><h3>เธชเนเธเธขเธญเธ”เธเธทเนเธญเน€เธเธทเนเธญเน€เธเธดเนเธกเนเธ•เนเธก</h3><button class="btn" data-screen="screenHome">เธเธฅเธฑเธ</button></div>
+                <div class="card-head"><h3>ส่งยอดซื้อเพื่อเพิ่มแต้ม</h3><button class="btn" data-screen="screenHome">กลับ</button></div>
                 <div class="card-body">
                   <form class="form" id="submitPurchaseForm">
-                    <div class="field"><label for="purchaseAmount">เธขเธญเธ”เธเธทเนเธญเธ•เธฒเธกเธเธดเธฅ</label><input id="purchaseAmount" required type="number" min="1" placeholder="เธเธฒเธ—"></div>
-                    <div class="field"><label for="purchaseRef">เน€เธฅเธเธเธดเธฅ/เน€เธฅเธเธเธณเธชเธฑเนเธเธเธทเนเธญ</label><input id="purchaseRef" required placeholder="เน€เธเนเธ INV-001"></div>
-                    <div class="field full"><label for="purchaseProof">เธซเธฅเธฑเธเธเธฒเธเธเธฒเธฃเธเธทเนเธญ</label><input id="purchaseProof" required placeholder="เน€เธฅเธเนเธเน€เธชเธฃเนเธ เธซเธฃเธทเธญเธเธดเธกเธเนเธงเนเธฒ เธชเนเธเธชเธฅเธดเธเนเธเนเธเธ— LINE"></div>
-                    <div class="field full"><label for="purchaseNote">เธฃเธฒเธขเธฅเธฐเน€เธญเธตเธขเธ”เน€เธเธดเนเธกเน€เธ•เธดเธก</label><textarea id="purchaseNote" placeholder="เน€เธเนเธ เธเธทเนเธญเธชเธดเธเธเนเธฒเธญเธฐเนเธฃ เธซเธฃเธทเธญเนเธเนเธเธงเนเธฒเธฃเธนเธเธชเธฅเธดเธเธชเนเธเนเธงเนเนเธเนเธเธ—"></textarea></div>
-                    <div class="notice full">เนเธ•เนเธกเธเธฐเธขเธฑเธเนเธกเนเน€เธเนเธฒเธ—เธฑเธเธ—เธต เธฃเนเธฒเธเธเธฐเธ•เธฃเธงเธเน€เธฅเธเธเธดเธฅ/เธซเธฅเธฑเธเธเธฒเธเธเนเธญเธเธญเธเธธเธกเธฑเธ•เธด เธซเธฒเธเธขเธญเธ”เนเธกเนเธ•เธฃเธ เธฃเนเธฒเธเธชเธฒเธกเธฒเธฃเธ–เธเธเธดเน€เธชเธเธฃเธฒเธขเธเธฒเธฃเนเธ”เน</div>
-                    <div class="field full"><button class="btn primary" type="submit">เธชเนเธเนเธซเนเธฃเนเธฒเธเธญเธเธธเธกเธฑเธ•เธด</button></div>
+                    <div class="field"><label for="purchaseAmount">ยอดซื้อตามบิล</label><input id="purchaseAmount" required type="number" min="1" placeholder="บาท"></div>
+                    <div class="field"><label for="purchaseRef">เลขบิล/เลขคำสั่งซื้อ</label><input id="purchaseRef" required placeholder="เช่น INV-001"></div>
+                    <div class="field full"><label for="purchaseProof">หลักฐานการซื้อ</label><input id="purchaseProof" required placeholder="เลขใบเสร็จ หรือพิมพ์ว่า ส่งสลิปในแชท LINE"></div>
+                    <div class="field full"><label for="purchaseNote">รายละเอียดเพิ่มเติม</label><textarea id="purchaseNote" placeholder="เช่น ซื้อสินค้าอะไร หรือแจ้งว่ารูปสลิปส่งไว้ในแชท"></textarea></div>
+                    <div class="notice full">แต้มจะยังไม่เข้าทันที ร้านจะตรวจเลขบิล/หลักฐานก่อนอนุมัติ หากยอดไม่ตรง ร้านสามารถปฏิเสธรายการได้</div>
+                    <div class="field full"><button class="btn primary" type="submit">ส่งให้ร้านอนุมัติ</button></div>
                   </form>
                 </div>
               </div>
@@ -592,21 +592,21 @@
 
             <section class="customer-screen" id="screenRedeem">
               <div class="card">
-                <div class="card-head"><h3>เนเธฅเธเธเธญเธ</h3><button class="btn" data-screen="screenHome">เธเธฅเธฑเธ</button></div>
+                <div class="card-head"><h3>แลกของ</h3><button class="btn" data-screen="screenHome">กลับ</button></div>
                 <div class="card-body" id="redeemList"></div>
               </div>
             </section>
 
             <section class="customer-screen" id="screenRewards">
               <div class="card">
-                <div class="card-head"><h3>เธเธญเธเธฃเธฒเธเธงเธฑเธฅ</h3><button class="btn" data-screen="screenHome">เธเธฅเธฑเธ</button></div>
+                <div class="card-head"><h3>ของรางวัล</h3><button class="btn" data-screen="screenHome">กลับ</button></div>
                 <div class="card-body" id="rewardCatalog"></div>
               </div>
             </section>
 
             <section class="customer-screen" id="screenHistory">
               <div class="card">
-                <div class="card-head"><h3>เธเธฃเธฐเธงเธฑเธ•เธด</h3><button class="btn" data-screen="screenHome">เธเธฅเธฑเธ</button></div>
+                <div class="card-head"><h3>ประวัติ</h3><button class="btn" data-screen="screenHome">กลับ</button></div>
                 <div class="card-body"><div class="list" id="customerHistory"></div></div>
               </div>
             </section>
@@ -616,47 +616,47 @@
 
       <section class="view" id="adminView">
         <div class="card admin-lock" id="adminLock">
-          <div class="card-head"><h3>เน€เธเนเธฒเธชเธนเนเธซเธฅเธฑเธเธเนเธฒเธเธฃเนเธฒเธ</h3></div>
+          <div class="card-head"><h3>เข้าสู่หลังบ้านร้าน</h3></div>
           <div class="card-body">
-            <div class="notice">เธฃเธซเธฑเธชเน€เธฃเธดเนเธกเธ•เนเธเธเธทเธญ 2312 เธเธงเธฃเน€เธเธฅเธตเนเธขเธเธเนเธฒ ADMIN_PASSCODE เนเธเนเธเธฅเน index.html เธเนเธญเธ deploy เนเธเนเธเธฒเธเธเธฃเธดเธ</div>
+            <div class="notice">รหัสหลังบ้านคือ 2312 ควรเก็บไว้เฉพาะผู้ดูแลระบบ</div>
             <div class="field">
-              <label for="adminPasscode">เธฃเธซเธฑเธชเธซเธฅเธฑเธเธเนเธฒเธ</label>
-              <input id="adminPasscode" type="password" autocomplete="current-password" placeholder="เธเธฃเธญเธเธฃเธซเธฑเธชเธซเธฅเธฑเธเธเนเธฒเธ">
+              <label for="adminPasscode">รหัสหลังบ้าน</label>
+              <input id="adminPasscode" type="password" autocomplete="current-password" placeholder="กรอกรหัสหลังบ้าน">
             </div>
-            <button class="btn primary" id="adminLoginBtn" type="button">เน€เธเนเธฒเธชเธนเนเธซเธฅเธฑเธเธเนเธฒเธ</button>
+            <button class="btn primary" id="adminLoginBtn" type="button">เข้าสู่หลังบ้าน</button>
             <div class="admin-lock-message" id="adminLockMessage" role="status" aria-live="polite"></div>
           </div>
         </div>
 
         <div class="top">
           <div>
-            <h2>เธซเธฅเธฑเธเธเนเธฒเธเธฃเนเธฒเธ</h2>
-            <p>เธฃเนเธฒเธเนเธเนเธ”เธนเธชเธกเธฒเธเธดเธ เธญเธเธธเธกเธฑเธ•เธดเธขเธญเธ”เธเธทเนเธญ เธ•เธฃเธงเธเธเธฃเธฐเธงเธฑเธ•เธด เนเธฅเธฐเน€เธ•เธฃเธตเธขเธกเธชเนเธเธเนเธญเธกเธนเธฅเธ•เนเธญเนเธซเน LINE OA</p>
+            <h2>หลังบ้านร้าน</h2>
+            <p>ร้านใช้ดูสมาชิก อนุมัติยอดซื้อ ตรวจประวัติ และเตรียมส่งข้อมูลต่อให้ LINE OA</p>
           </div>
-          <button class="btn" id="adminLogoutBtn" type="button">เธญเธญเธเธเธฒเธเธซเธฅเธฑเธเธเนเธฒเธ</button>
+          <button class="btn" id="adminLogoutBtn" type="button">ออกจากหลังบ้าน</button>
         </div>
 
         <section class="stats">
-          <div class="stat"><span>เธชเธกเธฒเธเธดเธ</span><strong id="statCustomers">0</strong></div>
-          <div class="stat"><span>เนเธ•เนเธกเธฃเธงเธก</span><strong id="statPoints">0</strong></div>
-          <div class="stat"><span>เธฃเธญเธญเธเธธเธกเธฑเธ•เธด</span><strong id="statPending">0</strong></div>
-          <div class="stat"><span>เนเธฅเธเธเธญเธเนเธฅเนเธง</span><strong id="statRedeemed">0</strong></div>
-          <div class="stat"><span>เธเธฒเธเธเนเธญเธกเธนเธฅ</span><strong id="statDatabase">-</strong></div>
+          <div class="stat"><span>สมาชิก</span><strong id="statCustomers">0</strong></div>
+          <div class="stat"><span>แต้มรวม</span><strong id="statPoints">0</strong></div>
+          <div class="stat"><span>รออนุมัติ</span><strong id="statPending">0</strong></div>
+          <div class="stat"><span>แลกของแล้ว</span><strong id="statRedeemed">0</strong></div>
+          <div class="stat"><span>ฐานข้อมูล</span><strong id="statDatabase">-</strong></div>
         </section>
 
         <section class="grid">
           <div class="card">
-            <div class="card-head"><h3>เธเธณเธเธญเน€เธเธดเนเธกเนเธ•เนเธก</h3><span class="pill warn">เธ•เนเธญเธเธญเธเธธเธกเธฑเธ•เธดเธเนเธญเธเนเธ•เนเธกเน€เธเนเธฒ</span></div>
+            <div class="card-head"><h3>คำขอเพิ่มแต้ม</h3><span class="pill warn">ต้องอนุมัติก่อนแต้มเข้า</span></div>
             <div class="card-body"><div class="list" id="pendingList"></div></div>
           </div>
 
           <div class="card">
-            <div class="card-head"><h3>เธเธฑเธเธ—เธถเธเธขเธญเธ”เธเธทเนเธญเธเธฒเธเน€เธเธญเธฃเนเนเธ—เธฃ</h3><span class="pill">เธซเธเนเธฒเธฃเนเธฒเธเนเธเน</span></div>
+            <div class="card-head"><h3>บันทึกยอดซื้อจากเบอร์โทร</h3><span class="pill">หน้าร้านใช้</span></div>
             <div class="card-body">
               <form class="form" id="counterSaleForm">
-                <div class="field"><label for="counterPhone">เน€เธเธญเธฃเนเนเธ—เธฃ</label><input id="counterPhone" required inputmode="tel" placeholder="เธฅเธนเธเธเนเธฒเนเธเนเธเน€เธเธญเธฃเน"></div>
-                <div class="field"><label for="counterAmount">เธขเธญเธ”เธเธทเนเธญ</label><input id="counterAmount" required type="number" min="1" placeholder="เธเธฒเธ—"></div>
-                <div class="field full"><button class="btn primary" type="submit">เธเธฑเธเธ—เธถเธเนเธฅเธฐเน€เธเธดเนเธกเนเธ•เนเธก</button></div>
+                <div class="field"><label for="counterPhone">เบอร์โทร</label><input id="counterPhone" required inputmode="tel" placeholder="ลูกค้าแจ้งเบอร์"></div>
+                <div class="field"><label for="counterAmount">ยอดซื้อ</label><input id="counterAmount" required type="number" min="1" placeholder="บาท"></div>
+                <div class="field full"><button class="btn primary" type="submit">บันทึกและเพิ่มแต้ม</button></div>
               </form>
             </div>
           </div>
@@ -664,41 +664,41 @@
 
         <section class="grid">
           <div class="card">
-            <div class="card-head"><h3>เธชเธกเธฒเธเธดเธเธ—เธฑเนเธเธซเธกเธ”</h3><input id="searchCustomer" placeholder="เธเนเธเธซเธฒเธเธทเนเธญ เน€เธเธญเธฃเน เธฃเธซเธฑเธชเธชเธกเธฒเธเธดเธ"></div>
+            <div class="card-head"><h3>สมาชิกทั้งหมด</h3><input id="searchCustomer" placeholder="ค้นหาชื่อ เบอร์ รหัสสมาชิก"></div>
             <div class="card-body"><div class="list" id="customerList"></div></div>
           </div>
 
           <div class="card">
-            <div class="card-head"><h3>เนเธ•เนเธกเนเธเธฅเนเธซเธกเธ”เธญเธฒเธขเธธ</h3><span class="pill">30 เธงเธฑเธ</span></div>
+            <div class="card-head"><h3>แต้มใกล้หมดอายุ</h3><span class="pill">30 วัน</span></div>
             <div class="card-body">
-              <div class="notice">เธฃเธฐเธเธเธเธฐเธกเธต Scheduled Function เธชเนเธเน€เธ•เธทเธญเธเธญเธฑเธ•เนเธเธกเธฑเธ•เธดเธงเธฑเธเธฅเธฐเธเธฃเธฑเนเธเธซเธฅเธฑเธเธ•เธฑเนเธเธเนเธฒ LINE token เธเธ Netlify เนเธฅเนเธง เธเธธเนเธกเธ”เนเธฒเธเธฅเนเธฒเธเนเธเนเธชเนเธเธเนเธณ/เธ—เธ”เธชเธญเธเธฃเธฒเธขเธเธเนเธ”เน</div>
+              <div class="notice">ระบบจะมี Scheduled Function ส่งเตือนอัตโนมัติวันละครั้งหลังตั้งค่า LINE token บน Netlify แล้ว ปุ่มด้านล่างใช้ส่งซ้ำ/ทดสอบรายคนได้</div>
               <div class="list" id="expiryList"></div>
             </div>
           </div>
 
           <div class="card">
-            <div class="card-head"><h3>เธเธณเธเธญเนเธฅเธเธเธญเธ</h3><span class="pill warn">เธฃเธญเธ”เธณเน€เธเธดเธเธเธฒเธฃ</span></div>
+            <div class="card-head"><h3>คำขอแลกของ</h3><span class="pill warn">รอดำเนินการ</span></div>
             <div class="card-body"><div class="list" id="redemptionList"></div></div>
           </div>
         </section>
 
         <section class="grid">
           <div class="card">
-            <div class="card-head"><h3>เน€เธเธดเนเธกเธเธญเธเธฃเธฒเธเธงเธฑเธฅ</h3><span class="pill">เนเธญเธ”เธกเธดเธเธเธฑเธ”เธเธฒเธฃเน€เธญเธ</span></div>
+            <div class="card-head"><h3>เพิ่มของรางวัล</h3><span class="pill">แอดมินจัดการเอง</span></div>
             <div class="card-body">
               <form class="form" id="rewardForm">
-                <div class="field"><label for="rewardName">เธเธทเนเธญเธเธญเธเธฃเธฒเธเธงเธฑเธฅ</label><input id="rewardName" required placeholder="เน€เธเนเธ เธชเนเธงเธเธฅเธ”เธเธธเนเธข 100 เธเธฒเธ—"></div>
-                <div class="field"><label for="rewardPoints">เนเธ•เนเธกเธ—เธตเนเนเธเน</label><input id="rewardPoints" required type="number" min="0" placeholder="เน€เธเนเธ 100"></div>
-                <div class="field"><label for="rewardStock">เธเธณเธเธงเธเธเธเน€เธซเธฅเธทเธญ</label><input id="rewardStock" placeholder="เน€เธงเนเธเธงเนเธฒเธเธ–เนเธฒเนเธกเนเธเธณเธเธฑเธ”"></div>
-                <div class="field"><label for="rewardActive">เธชเธ–เธฒเธเธฐ</label><select id="rewardActive"><option value="true">เน€เธเธดเธ”เนเธซเนเนเธฅเธ</option><option value="false">เธเธดเธ”เนเธงเนเธเนเธญเธ</option></select></div>
-                <div class="field full"><label for="rewardDescription">เธฃเธฒเธขเธฅเธฐเน€เธญเธตเธขเธ”</label><textarea id="rewardDescription" placeholder="เน€เธเธทเนเธญเธเนเธ เธซเธฃเธทเธญเธซเธกเธฒเธขเน€เธซเธ•เธธเธเธญเธเธฃเธฒเธเธงเธฑเธฅ"></textarea></div>
-                <div class="field full"><button class="btn primary" type="submit">เน€เธเธดเนเธกเธเธญเธเธฃเธฒเธเธงเธฑเธฅ</button></div>
+                <div class="field"><label for="rewardName">ชื่อของรางวัล</label><input id="rewardName" required placeholder="เช่น ส่วนลดปุ๋ย 100 บาท"></div>
+                <div class="field"><label for="rewardPoints">แต้มที่ใช้</label><input id="rewardPoints" required type="number" min="0" placeholder="เช่น 100"></div>
+                <div class="field"><label for="rewardStock">จำนวนคงเหลือ</label><input id="rewardStock" placeholder="เว้นว่างถ้าไม่จำกัด"></div>
+                <div class="field"><label for="rewardActive">สถานะ</label><select id="rewardActive"><option value="true">เปิดให้แลก</option><option value="false">ปิดไว้ก่อน</option></select></div>
+                <div class="field full"><label for="rewardDescription">รายละเอียด</label><textarea id="rewardDescription" placeholder="เงื่อนไข หรือหมายเหตุของรางวัล"></textarea></div>
+                <div class="field full"><button class="btn primary" type="submit">เพิ่มของรางวัล</button></div>
               </form>
             </div>
           </div>
 
           <div class="card">
-            <div class="card-head"><h3>เธฃเธฒเธขเธเธฒเธฃเธเธญเธเธฃเธฒเธเธงเธฑเธฅ</h3><span class="pill">เนเธเนเธชเธ–เธฒเธเธฐ/เธฅเธ</span></div>
+            <div class="card-head"><h3>รายการของรางวัล</h3><span class="pill">แก้สถานะ/ลบ</span></div>
             <div class="card-body"><div class="list" id="adminRewardList"></div></div>
           </div>
         </section>
@@ -748,10 +748,10 @@
     let isLiffReady = false;
     let isCloudReady = false;
     const defaultRewards = [
-      { id: "discount-50", name: "เธชเนเธงเธเธฅเธ”เธชเธดเธเธเนเธฒ 50 เธเธฒเธ—", points: 50 },
-      { id: "delivery-free", name: "เธชเนเธเธเธฃเธต 1 เธเธฃเธฑเนเธ", points: 80 },
-      { id: "discount-100", name: "เธชเนเธงเธเธฅเธ”เธชเธดเธเธเนเธฒ 100 เธเธฒเธ—", points: 100 },
-      { id: "premium-gift", name: "เธเธญเธเธเธฃเธตเน€เธกเธตเธขเธกเธเธฒเธเธฃเนเธฒเธ", points: 150 }
+      { id: "discount-50", name: "ส่วนลดสินค้า 50 บาท", points: 50 },
+      { id: "delivery-free", name: "ส่งฟรี 1 ครั้ง", points: 80 },
+      { id: "discount-100", name: "ส่วนลดสินค้า 100 บาท", points: 100 },
+      { id: "premium-gift", name: "ของพรีเมียมจากร้าน", points: 150 }
     ];
 
     let state = loadState();
@@ -814,7 +814,7 @@
       } catch (error) {
         isCloudReady = false;
         console.warn("Realtime Database load failed; using local data", error);
-        showToast("เธขเธฑเธเน€เธเธทเนเธญเธกเธเธฒเธเธเนเธญเธกเธนเธฅเนเธกเนเนเธ”เน เนเธเนเธเนเธญเธกเธนเธฅเนเธเน€เธเธฃเธทเนเธญเธเธเธฑเนเธงเธเธฃเธฒเธง");
+        showToast("ยังเชื่อมฐานข้อมูลไม่ได้ ใช้ข้อมูลในเครื่องชั่วคราว");
         return false;
       }
     }
@@ -832,7 +832,7 @@
       } catch (error) {
         isCloudReady = false;
         console.warn(`Realtime Database save failed for ${collectionName}`, error);
-        showToast("เธเธฑเธเธ—เธถเธเธเธถเนเธเธเธฒเธเธเนเธญเธกเธนเธฅเนเธกเนเธชเธณเน€เธฃเนเธ เนเธ•เนเน€เธเนเธเนเธเน€เธเธฃเธทเนเธญเธเนเธงเนเธเนเธญเธ");
+        showToast("บันทึกขึ้นฐานข้อมูลไม่สำเร็จ แต่เก็บในเครื่องไว้ก่อน");
       }
     }
 
@@ -853,7 +853,7 @@
         await Promise.all(Object.values(cloudCollections).map(clearCloudCollection));
       } catch (error) {
         console.warn("Realtime Database clear failed", error);
-        showToast("เธฅเนเธฒเธเธเนเธญเธกเธนเธฅเธเธเธเธฒเธเธเนเธญเธกเธนเธฅเนเธกเนเธชเธณเน€เธฃเนเธ");
+        showToast("ล้างข้อมูลบนฐานข้อมูลไม่สำเร็จ");
       }
     }
 
@@ -917,7 +917,7 @@
         return { ok: true, result };
       } catch (error) {
         console.warn("LINE notification failed", error);
-        showToast("เธเธฑเธเธ—เธถเธเธชเธณเน€เธฃเนเธ เนเธ•เนเธชเนเธเนเธเนเธเน€เธ•เธทเธญเธ LINE เนเธกเนเธชเธณเน€เธฃเนเธ");
+        showToast("บันทึกสำเร็จ แต่ส่งแจ้งเตือน LINE ไม่สำเร็จ");
         return { ok: false, error };
       }
     }
@@ -945,9 +945,9 @@
         if (els.adminPasscode) els.adminPasscode.value = "";
         if (els.adminLockMessage) els.adminLockMessage.textContent = "";
         route();
-        showToast("เน€เธเนเธฒเธชเธนเนเธซเธฅเธฑเธเธเนเธฒเธเนเธฅเนเธง");
+        showToast("เข้าสู่หลังบ้านแล้ว");
       } else if (els.adminLockMessage) {
-        els.adminLockMessage.textContent = "เธฃเธซเธฑเธชเนเธกเนเธ–เธนเธเธ•เนเธญเธ";
+        els.adminLockMessage.textContent = "รหัสไม่ถูกต้อง";
       }
     }
 
@@ -955,7 +955,7 @@
       setAdminAuthenticated(false);
       location.hash = "#member";
       route();
-      showToast("เธญเธญเธเธเธฒเธเธซเธฅเธฑเธเธเนเธฒเธเนเธฅเนเธง");
+      showToast("ออกจากหลังบ้านแล้ว");
     }
 
     async function initLineIdentity({ skipLogin = false } = {}) {
@@ -987,8 +987,8 @@
       const date = now();
       state = {
         customers: [
-          { id: crypto.randomUUID(), lineUserId: MOCK_LINE_USER_ID, code: "MB-0001", name: "เธเธธเธ“เธกเธดเธเธ•เธฃเธฒ", phone: "0812345678", birthday: "1992-08-14", area: "เธญ.เธเธฒเธเธเนเธญเธ", points: 245, totalSpend: 28600, joinedAt: date },
-          { id: crypto.randomUUID(), lineUserId: "U-demo-2", code: "MB-0002", name: "เธเธธเธ“เธเธเธเธฅ", phone: "0898881122", birthday: "", area: "เธญ.เน€เธกเธทเธญเธเธเธฑเธขเธ เธนเธกเธด", points: 96, totalSpend: 9600, joinedAt: date }
+          { id: crypto.randomUUID(), lineUserId: MOCK_LINE_USER_ID, code: "MB-0001", name: "คุณมินตรา", phone: "0812345678", birthday: "1992-08-14", area: "อ.ปากช่อง", points: 245, totalSpend: 28600, joinedAt: date },
+          { id: crypto.randomUUID(), lineUserId: "U-demo-2", code: "MB-0002", name: "คุณธนพล", phone: "0898881122", birthday: "", area: "อ.เมืองชัยภูมิ", points: 96, totalSpend: 9600, joinedAt: date }
         ],
         transactions: [],
         pendingPurchases: [],
@@ -996,7 +996,7 @@
         rewards: state.rewards.length ? state.rewards : defaultRewards.map(item => ({ ...item, active: true, stock: "", description: "" }))
       };
       state.customers.forEach(customer => {
-        state.transactions.push({ id: crypto.randomUUID(), customerId: customer.id, type: "earn", amount: customer.totalSpend, points: customer.points, note: "เธขเธญเธ”เธชเธฐเธชเธกเน€เธฃเธดเนเธกเธ•เนเธ", date, expiresAt: addMonths(date, 12) });
+        state.transactions.push({ id: crypto.randomUUID(), customerId: customer.id, type: "earn", amount: customer.totalSpend, points: customer.points, note: "ยอดสะสมเริ่มต้น", date, expiresAt: addMonths(date, 12) });
       });
       saveState();
       await Promise.all([
@@ -1005,16 +1005,16 @@
         ...state.rewards.map(item => saveCloudDoc(cloudCollections.rewards, item))
       ]);
       render();
-      showToast("เนเธซเธฅเธ”เธเนเธญเธกเธนเธฅเธ•เธฑเธงเธญเธขเนเธฒเธเนเธฅเนเธง");
+      showToast("โหลดข้อมูลตัวอย่างแล้ว");
     }
 
     async function clearData() {
-      if (!confirm("เธฅเนเธฒเธเธเนเธญเธกเธนเธฅเธ•เธฑเธงเธญเธขเนเธฒเธเธ—เธฑเนเธเธซเธกเธ”เนเธเน€เธเธฃเธฒเธงเนเน€เธเธญเธฃเนเธเธตเน?")) return;
+      if (!confirm("ล้างข้อมูลตัวอย่างทั้งหมดในเบราว์เซอร์นี้?")) return;
       state = { customers: [], transactions: [], pendingPurchases: [], redemptions: [], rewards: [] };
       saveState();
       await clearCloudState();
       render();
-      showToast("เธฅเนเธฒเธเธเนเธญเธกเธนเธฅเนเธฅเนเธง");
+      showToast("ล้างข้อมูลแล้ว");
     }
 
     function route() {
@@ -1068,32 +1068,32 @@
       const customer = currentCustomer();
       if (!customer) {
         els.memberSummary.innerHTML = `
-          <strong>เธขเธฑเธเนเธกเนเนเธ”เนเธชเธกเธฑเธเธฃเธชเธกเธฒเธเธดเธ</strong>
-          <small>เธเธ”เธชเธกเธฑเธเธฃเธชเธกเธฒเธเธดเธเน€เธเธทเนเธญเธเธนเธ LINE user ID เธเธฑเธเน€เธเธญเธฃเนเนเธ—เธฃเนเธฅเธฐเธฃเธซเธฑเธชเธชเธกเธฒเธเธดเธ</small>
-          <small>${isLiffReady ? `เธเธณเธฅเธฑเธเนเธเนเธเธฑเธเธเธต LINE: ${escapeHtml(currentLineDisplayName)}` : "เนเธซเธกเธ”เธ—เธ”เธฅเธญเธเธเธญเธ LINE"}</small>
+          <strong>ยังไม่ได้สมัครสมาชิก</strong>
+          <small>กดสมัครสมาชิกเพื่อผูก LINE user ID กับเบอร์โทรและรหัสสมาชิก</small>
+          <small>${isLiffReady ? `กำลังใช้บัญชี LINE: ${escapeHtml(currentLineDisplayName)}` : "โหมดทดลองนอก LINE"}</small>
         `;
-        els.pointsDetail.innerHTML = `<div class="empty">เธเธฃเธธเธ“เธฒเธชเธกเธฑเธเธฃเธชเธกเธฒเธเธดเธเธเนเธญเธเน€เธเนเธเนเธ•เนเธก</div>`;
-        els.customerHistory.innerHTML = `<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธเธฃเธฐเธงเธฑเธ•เธด</div>`;
+        els.pointsDetail.innerHTML = `<div class="empty">กรุณาสมัครสมาชิกก่อนเช็คแต้ม</div>`;
+        els.customerHistory.innerHTML = `<div class="empty">ยังไม่มีประวัติ</div>`;
       } else {
         els.memberSummary.innerHTML = `
           <div class="item-row">
             <div>
               <strong>${escapeHtml(customer.name)}</strong>
-              <small>${escapeHtml(customer.code)} ยท ${escapeHtml(customer.phone)}</small>
+              <small>${escapeHtml(customer.code)} · ${escapeHtml(customer.phone)}</small>
             </div>
-            <span class="pill">${money(customer.points)} เนเธ•เนเธก</span>
+            <span class="pill">${money(customer.points)} แต้ม</span>
           </div>
           <div class="points">${money(customer.points)}</div>
-          <small>เธเธทเนเธญเธเธฃเธ 100 เธเธฒเธ— = 1 เนเธ•เนเธก เธขเธญเธ”เธเธทเนเธญเธ—เธตเนเธฅเธนเธเธเนเธฒเนเธเนเธเธ•เนเธญเธเธฃเธญเธฃเนเธฒเธเธญเธเธธเธกเธฑเธ•เธดเธเนเธญเธ</small>
-          <small>${isLiffReady ? `เธเธฑเธเธเธต LINE: ${escapeHtml(currentLineDisplayName)}` : "เนเธซเธกเธ”เธ—เธ”เธฅเธญเธเธเธญเธ LINE"}</small>
+          <small>ซื้อครบ 100 บาท = 1 แต้ม ยอดซื้อที่ลูกค้าแจ้งต้องรอร้านอนุมัติก่อน</small>
+          <small>${isLiffReady ? `บัญชี LINE: ${escapeHtml(currentLineDisplayName)}` : "โหมดทดลองนอก LINE"}</small>
         `;
         const nextExpiry = state.transactions
           .filter(item => item.customerId === customer.id && item.type === "earn")
           .sort((a, b) => new Date(a.expiresAt) - new Date(b.expiresAt))[0];
         els.pointsDetail.innerHTML = `
           <div class="points">${money(customer.points)}</div>
-          <small>เธฃเธซเธฑเธชเธชเธกเธฒเธเธดเธ ${escapeHtml(customer.code)}</small>
-          <small>เนเธ•เนเธกเธเธธเธ”เธ–เธฑเธ”เนเธเธซเธกเธ”เธญเธฒเธขเธธ: ${nextExpiry ? new Date(nextExpiry.expiresAt).toLocaleDateString("th-TH") : "-"}</small>
+          <small>รหัสสมาชิก ${escapeHtml(customer.code)}</small>
+          <small>แต้มชุดถัดไปหมดอายุ: ${nextExpiry ? new Date(nextExpiry.expiresAt).toLocaleDateString("th-TH") : "-"}</small>
         `;
         renderCustomerHistory(customer);
       }
@@ -1110,7 +1110,7 @@
       const items = [...pendingItems, ...transactionItems]
         .sort((a, b) => new Date(b.date) - new Date(a.date));
       if (!items.length) {
-        els.customerHistory.innerHTML = `<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธเธฃเธฐเธงเธฑเธ•เธด</div>`;
+        els.customerHistory.innerHTML = `<div class="empty">ยังไม่มีประวัติ</div>`;
         return;
       }
       els.customerHistory.innerHTML = items.map(item => {
@@ -1120,32 +1120,32 @@
             <div class="item">
               <div class="item-row">
                 <div>
-                  <strong>เธฃเธญเธญเธเธธเธกเธฑเธ•เธดเธขเธญเธ”เธเธทเนเธญ</strong>
-                  <small>เธงเธฑเธเธ—เธตเนเธชเนเธ: ${new Date(item.date).toLocaleString("th-TH")}</small>
-                  <small>เน€เธฅเธเธเธดเธฅ: ${escapeHtml(item.ref || "-")}</small>
-                  <small>เธขเธญเธ”เธ—เธตเนเนเธเนเธ: ${money(item.amount)} เธเธฒเธ— ยท เธเธฒเธ”เธงเนเธฒเธเธฐเนเธ”เน ${money(pendingPoints)} เนเธ•เนเธก</small>
-                  <small>เธซเธฅเธฑเธเธเธฒเธ: ${escapeHtml(item.proof || "-")}</small>
+                  <strong>รออนุมัติยอดซื้อ</strong>
+                  <small>วันที่ส่ง: ${new Date(item.date).toLocaleString("th-TH")}</small>
+                  <small>เลขบิล: ${escapeHtml(item.ref || "-")}</small>
+                  <small>ยอดที่แจ้ง: ${money(item.amount)} บาท · คาดว่าจะได้ ${money(pendingPoints)} แต้ม</small>
+                  <small>หลักฐาน: ${escapeHtml(item.proof || "-")}</small>
                 </div>
-                <span class="pill warn">เธฃเธญเธญเธเธธเธกเธฑเธ•เธด</span>
+                <span class="pill warn">รออนุมัติ</span>
               </div>
             </div>
           `;
         }
-        const title = item.type === "earn" ? "เธญเธเธธเธกเธฑเธ•เธดเธขเธญเธ”เธเธทเนเธญเนเธฅเนเธง" : item.type === "refund" ? "เธเธทเธเนเธ•เนเธก" : "เนเธเนเนเธ•เนเธก";
+        const title = item.type === "earn" ? "อนุมัติยอดซื้อแล้ว" : item.type === "refund" ? "คืนแต้ม" : "ใช้แต้ม";
         const pointSign = item.type === "redeem" ? "-" : "+";
         return `
           <div class="item">
             <div class="item-row">
               <div>
                 <strong>${title}</strong>
-                <small>เธงเธฑเธเธ—เธตเนเธ—เธณเธฃเธฒเธขเธเธฒเธฃ: ${new Date(item.date).toLocaleString("th-TH")}</small>
-                ${item.ref ? `<small>เน€เธฅเธเธเธดเธฅ: ${escapeHtml(item.ref)}</small>` : ""}
-                ${item.type === "earn" ? `<small>เธขเธญเธ”เธญเธเธธเธกเธฑเธ•เธดเธเธฃเธดเธ: ${money(item.approvedAmount || item.amount)} เธเธฒเธ—</small>` : ""}
-                ${item.type === "earn" && item.requestedAmount && item.requestedAmount !== item.approvedAmount ? `<small>เธขเธญเธ”เธ—เธตเนเนเธเนเธ ${money(item.requestedAmount)} เธเธฒเธ— ยท เธฃเนเธฒเธเธเธฃเธฑเธเน€เธเนเธ ${money(item.approvedAmount)} เธเธฒเธ—</small>` : ""}
+                <small>วันที่ทำรายการ: ${new Date(item.date).toLocaleString("th-TH")}</small>
+                ${item.ref ? `<small>เลขบิล: ${escapeHtml(item.ref)}</small>` : ""}
+                ${item.type === "earn" ? `<small>ยอดอนุมัติจริง: ${money(item.approvedAmount || item.amount)} บาท</small>` : ""}
+                ${item.type === "earn" && item.requestedAmount && item.requestedAmount !== item.approvedAmount ? `<small>ยอดที่แจ้ง ${money(item.requestedAmount)} บาท · ร้านปรับเป็น ${money(item.approvedAmount)} บาท</small>` : ""}
                 <small>${escapeHtml(item.note || "-")}</small>
-                ${item.adminNote ? `<small>เธซเธกเธฒเธขเน€เธซเธ•เธธเธฃเนเธฒเธ: ${escapeHtml(item.adminNote)}</small>` : ""}
+                ${item.adminNote ? `<small>หมายเหตุร้าน: ${escapeHtml(item.adminNote)}</small>` : ""}
               </div>
-              <span class="pill">${pointSign}${money(item.points)} เนเธ•เนเธก</span>
+              <span class="pill">${pointSign}${money(item.points)} แต้ม</span>
             </div>
           </div>
         `;
@@ -1160,15 +1160,15 @@
           <div class="item-row">
             <div>
               <strong>${escapeHtml(reward.name)}</strong>
-              <small>เนเธเน ${money(reward.points)} เนเธ•เนเธก${reward.stock ? ` ยท เธเธเน€เธซเธฅเธทเธญ ${escapeHtml(reward.stock)}` : ""}</small>
+              <small>ใช้ ${money(reward.points)} แต้ม${reward.stock ? ` · คงเหลือ ${escapeHtml(reward.stock)}` : ""}</small>
               ${reward.description ? `<small>${escapeHtml(reward.description)}</small>` : ""}
             </div>
-            <button class="btn ${customer && customer.points >= reward.points ? "primary" : ""}" data-redeem="${reward.id}" ${!customer || customer.points < reward.points ? "disabled" : ""}>${customer && customer.points >= reward.points ? "เนเธฅเธ" : "เนเธ•เนเธกเนเธกเนเธเธญ"}</button>
+            <button class="btn ${customer && customer.points >= reward.points ? "primary" : ""}" data-redeem="${reward.id}" ${!customer || customer.points < reward.points ? "disabled" : ""}>${customer && customer.points >= reward.points ? "แลก" : "แต้มไม่พอ"}</button>
           </div>
         </div>
       `).join("");
-      els.redeemList.innerHTML = html || `<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธเธญเธเธฃเธฒเธเธงเธฑเธฅ</div>`;
-      els.rewardCatalog.innerHTML = html || `<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธเธญเธเธฃเธฒเธเธงเธฑเธฅ</div>`;
+      els.redeemList.innerHTML = html || `<div class="empty">ยังไม่มีของรางวัล</div>`;
+      els.rewardCatalog.innerHTML = html || `<div class="empty">ยังไม่มีของรางวัล</div>`;
       document.querySelectorAll("[data-redeem]").forEach(button => button.addEventListener("click", () => redeemReward(button.dataset.redeem)));
     }
 
@@ -1178,7 +1178,7 @@
       $("#statPoints").textContent = money(totalPoints);
       $("#statPending").textContent = money(state.pendingPurchases.length);
       $("#statRedeemed").textContent = money(state.redemptions.length);
-      $("#statDatabase").textContent = isCloudReady ? "เน€เธเธทเนเธญเธกเนเธฅเนเธง" : "เนเธเน€เธเธฃเธทเนเธญเธ";
+      $("#statDatabase").textContent = isCloudReady ? "เชื่อมแล้ว" : "ในเครื่อง";
       renderPending();
       renderCustomers();
       renderExpiry();
@@ -1188,7 +1188,7 @@
 
     function renderPending() {
       if (!state.pendingPurchases.length) {
-        els.pendingList.innerHTML = `<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธฃเธฒเธขเธเธฒเธฃเธฃเธญเธญเธเธธเธกเธฑเธ•เธด</div>`;
+        els.pendingList.innerHTML = `<div class="empty">ยังไม่มีรายการรออนุมัติ</div>`;
         return;
       }
       els.pendingList.innerHTML = state.pendingPurchases.map(item => {
@@ -1199,28 +1199,28 @@
           <div class="item">
             <div class="item-row">
               <div>
-                <strong>${escapeHtml(customer?.name || "เนเธกเนเธเธเธชเธกเธฒเธเธดเธ")}</strong>
-                <small>${escapeHtml(customer?.phone || "-")} ยท เธฅเธนเธเธเนเธฒเนเธเนเธ ${money(item.amount)} เธเธฒเธ—</small>
+                <strong>${escapeHtml(customer?.name || "ไม่พบสมาชิก")}</strong>
+                <small>${escapeHtml(customer?.phone || "-")} · ลูกค้าแจ้ง ${money(item.amount)} บาท</small>
               </div>
-              <span class="pill warn">เธฃเธญเธญเธเธธเธกเธฑเธ•เธด</span>
+              <span class="pill warn">รออนุมัติ</span>
             </div>
-            <small>เน€เธฅเธเธเธดเธฅ: ${escapeHtml(item.ref || "-")}</small>
-            <small>เธซเธฅเธฑเธเธเธฒเธ: ${escapeHtml(item.proof || "-")}</small>
-            <small>เธซเธกเธฒเธขเน€เธซเธ•เธธ: ${escapeHtml(item.note || "-")}</small>
+            <small>เลขบิล: ${escapeHtml(item.ref || "-")}</small>
+            <small>หลักฐาน: ${escapeHtml(item.proof || "-")}</small>
+            <small>หมายเหตุ: ${escapeHtml(item.note || "-")}</small>
             <div class="form">
               <div class="field">
-                <label for="approved-${item.id}">เธขเธญเธ”เธญเธเธธเธกเธฑเธ•เธดเธเธฃเธดเธ</label>
+                <label for="approved-${item.id}">ยอดอนุมัติจริง</label>
                 <input id="approved-${item.id}" data-approved-amount="${item.id}" type="number" min="0" value="${approvedAmount}">
               </div>
               <div class="field">
-                <label for="admin-note-${item.id}">เธซเธกเธฒเธขเน€เธซเธ•เธธเนเธญเธ”เธกเธดเธ</label>
-                <input id="admin-note-${item.id}" data-admin-note="${item.id}" value="${escapeAttr(item.adminNote || "")}" placeholder="เน€เธเนเธ เธเธฃเธฑเธเธขเธญเธ”เธ•เธฒเธกเธเธดเธฅเธเธฃเธดเธ">
+                <label for="admin-note-${item.id}">หมายเหตุแอดมิน</label>
+                <input id="admin-note-${item.id}" data-admin-note="${item.id}" value="${escapeAttr(item.adminNote || "")}" placeholder="เช่น ปรับยอดตามบิลจริง">
               </div>
             </div>
-            <div class="notice">เธ•เธฃเธงเธเธขเธญเธ”เธเธทเนเธญเธเธฑเธเน€เธฅเธเธเธดเธฅ/เธชเธฅเธดเธเธเนเธญเธเธเธ”เธญเธเธธเธกเธฑเธ•เธด เธฃเธฐเธเธเธเธฐเธเธดเธ”เนเธ•เนเธกเธเธฒเธเธขเธญเธ”เธญเธเธธเธกเธฑเธ•เธดเธเธฃเธดเธ: ${money(points)} เนเธ•เนเธก</div>
+            <div class="notice">ตรวจยอดซื้อกับเลขบิล/สลิปก่อนกดอนุมัติ ระบบจะคิดแต้มจากยอดอนุมัติจริง: ${money(points)} แต้ม</div>
             <div class="actions">
-              <button class="btn primary" data-approve="${item.id}">เธญเธเธธเธกเธฑเธ•เธด</button>
-              <button class="btn danger" data-reject="${item.id}">เธเธเธดเน€เธชเธ</button>
+              <button class="btn primary" data-approve="${item.id}">อนุมัติ</button>
+              <button class="btn danger" data-reject="${item.id}">ปฏิเสธ</button>
             </div>
           </div>
         `;
@@ -1233,7 +1233,7 @@
       const query = $("#searchCustomer").value.trim().toLowerCase();
       const customers = state.customers.filter(customer => `${customer.name} ${customer.phone} ${customer.code}`.toLowerCase().includes(query));
       if (!customers.length) {
-        els.customerList.innerHTML = `<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธชเธกเธฒเธเธดเธ</div>`;
+        els.customerList.innerHTML = `<div class="empty">ยังไม่มีสมาชิก</div>`;
         return;
       }
       els.customerList.innerHTML = customers.map(customer => `
@@ -1241,11 +1241,11 @@
           <div class="item-row">
             <div>
               <strong>${escapeHtml(customer.name)}</strong>
-              <small>${escapeHtml(customer.code)} ยท ${escapeHtml(customer.phone)} ยท ${escapeHtml(customer.area || customer.province || "-")}</small>
+              <small>${escapeHtml(customer.code)} · ${escapeHtml(customer.phone)} · ${escapeHtml(customer.area || customer.province || "-")}</small>
             </div>
-            <span class="pill">${money(customer.points)} เนเธ•เนเธก</span>
+            <span class="pill">${money(customer.points)} แต้ม</span>
           </div>
-          <small>เธขเธญเธ”เธเธทเนเธญเธฃเธงเธก ${money(customer.totalSpend)} เธเธฒเธ—</small>
+          <small>ยอดซื้อรวม ${money(customer.totalSpend)} บาท</small>
         </div>
       `).join("");
     }
@@ -1259,7 +1259,7 @@
         return expiry >= start && expiry <= end;
       });
       if (!items.length) {
-        els.expiryList.innerHTML = `<div class="empty">เนเธกเนเธกเธตเนเธ•เนเธกเธซเธกเธ”เธญเธฒเธขเธธเนเธ 30 เธงเธฑเธ</div>`;
+        els.expiryList.innerHTML = `<div class="empty">ไม่มีแต้มหมดอายุใน 30 วัน</div>`;
         return;
       }
       els.expiryList.innerHTML = items.map(item => {
@@ -1269,10 +1269,10 @@
             <div class="item-row">
               <div>
                 <strong>${escapeHtml(customer?.name || "-")}</strong>
-                <small>${escapeHtml(customer?.phone || "-")} ยท ${money(item.points)} เนเธ•เนเธกเธเธฐเธซเธกเธ”เธญเธฒเธขเธธเธงเธฑเธเธ—เธตเน ${new Date(item.expiresAt).toLocaleDateString("th-TH")}</small>
-                ${item.expiryNotifiedAt ? `<small>เนเธเนเธเน€เธ•เธทเธญเธเธฅเนเธฒเธชเธธเธ”: ${new Date(item.expiryNotifiedAt).toLocaleString("th-TH")}</small>` : ""}
+                <small>${escapeHtml(customer?.phone || "-")} · ${money(item.points)} แต้มจะหมดอายุวันที่ ${new Date(item.expiresAt).toLocaleDateString("th-TH")}</small>
+                ${item.expiryNotifiedAt ? `<small>แจ้งเตือนล่าสุด: ${new Date(item.expiryNotifiedAt).toLocaleString("th-TH")}</small>` : ""}
               </div>
-              <button class="btn primary" data-notify-expiry="${item.id}">เนเธเนเธเน€เธ•เธทเธญเธ LINE</button>
+              <button class="btn primary" data-notify-expiry="${item.id}">แจ้งเตือน LINE</button>
             </div>
           </div>
         `;
@@ -1284,28 +1284,28 @@
 
     function renderRedemptions() {
       if (!state.redemptions.length) {
-        els.redemptionList.innerHTML = `<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธเธณเธเธญเนเธฅเธเธเธญเธ</div>`;
+        els.redemptionList.innerHTML = `<div class="empty">ยังไม่มีคำขอแลกของ</div>`;
         return;
       }
       els.redemptionList.innerHTML = [...state.redemptions]
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .map(item => {
           const customer = state.customers.find(entry => entry.id === item.customerId);
-          const statusText = item.status === "completed" ? "เธเธฑเธ”เธเธฒเธฃเนเธฅเนเธง" : item.status === "cancelled" ? "เธขเธเน€เธฅเธดเธ" : "เธฃเธญเธ”เธณเน€เธเธดเธเธเธฒเธฃ";
+          const statusText = item.status === "completed" ? "จัดการแล้ว" : item.status === "cancelled" ? "ยกเลิก" : "รอดำเนินการ";
           return `
             <div class="item">
               <div class="item-row">
                 <div>
                   <strong>${escapeHtml(item.rewardName || "-")}</strong>
-                  <small>${escapeHtml(customer?.name || "-")} ยท ${escapeHtml(customer?.phone || "-")} ยท เนเธเน ${money(item.points)} เนเธ•เนเธก</small>
+                  <small>${escapeHtml(customer?.name || "-")} · ${escapeHtml(customer?.phone || "-")} · ใช้ ${money(item.points)} แต้ม</small>
                 </div>
                 <span class="pill ${item.status === "requested" ? "warn" : ""}">${statusText}</span>
               </div>
               <small>${new Date(item.date).toLocaleString("th-TH")}</small>
-              ${item.refundedAt ? `<small>เธเธทเธเนเธ•เนเธกเนเธฅเนเธง: ${new Date(item.refundedAt).toLocaleString("th-TH")}</small>` : ""}
+              ${item.refundedAt ? `<small>คืนแต้มแล้ว: ${new Date(item.refundedAt).toLocaleString("th-TH")}</small>` : ""}
               <div class="actions">
-                <button class="btn primary" data-complete-redemption="${item.id}" ${item.status !== "requested" ? "disabled" : ""}>เธเธฑเธ”เธเธฒเธฃเนเธฅเนเธง</button>
-                <button class="btn danger" data-cancel-redemption="${item.id}" ${item.status !== "requested" ? "disabled" : ""}>เธขเธเน€เธฅเธดเธเนเธฅเธฐเธเธทเธเนเธ•เนเธก</button>
+                <button class="btn primary" data-complete-redemption="${item.id}" ${item.status !== "requested" ? "disabled" : ""}>จัดการแล้ว</button>
+                <button class="btn danger" data-cancel-redemption="${item.id}" ${item.status !== "requested" ? "disabled" : ""}>ยกเลิกและคืนแต้ม</button>
               </div>
             </div>
           `;
@@ -1320,7 +1320,7 @@
 
     function renderAdminRewards() {
       if (!state.rewards.length) {
-        els.adminRewardList.innerHTML = `<div class="empty">เธขเธฑเธเนเธกเนเธกเธตเธเธญเธเธฃเธฒเธเธงเธฑเธฅ</div>`;
+        els.adminRewardList.innerHTML = `<div class="empty">ยังไม่มีของรางวัล</div>`;
         return;
       }
       els.adminRewardList.innerHTML = state.rewards
@@ -1330,14 +1330,14 @@
             <div class="item-row">
               <div>
                 <strong>${escapeHtml(reward.name)}</strong>
-                <small>เนเธเน ${money(reward.points)} เนเธ•เนเธก${reward.stock ? ` ยท เธเธเน€เธซเธฅเธทเธญ ${escapeHtml(reward.stock)}` : ""}</small>
+                <small>ใช้ ${money(reward.points)} แต้ม${reward.stock ? ` · คงเหลือ ${escapeHtml(reward.stock)}` : ""}</small>
                 ${reward.description ? `<small>${escapeHtml(reward.description)}</small>` : ""}
               </div>
-              <span class="pill ${reward.active === false ? "warn" : ""}">${reward.active === false ? "เธเธดเธ”" : "เน€เธเธดเธ”"}</span>
+              <span class="pill ${reward.active === false ? "warn" : ""}">${reward.active === false ? "ปิด" : "เปิด"}</span>
             </div>
             <div class="actions">
-              <button class="btn" data-toggle-reward="${reward.id}">${reward.active === false ? "เน€เธเธดเธ”เนเธซเนเนเธฅเธ" : "เธเธดเธ”เนเธงเนเธเนเธญเธ"}</button>
-              <button class="btn danger" data-delete-reward="${reward.id}">เธฅเธ</button>
+              <button class="btn" data-toggle-reward="${reward.id}">${reward.active === false ? "เปิดให้แลก" : "ปิดไว้ก่อน"}</button>
+              <button class="btn danger" data-delete-reward="${reward.id}">ลบ</button>
             </div>
           </div>
         `).join("");
@@ -1359,7 +1359,7 @@
         existing.birthday = $("#customerBirthday").value;
         existing.area = $("#customerArea").value.trim();
         await saveCloudDoc(cloudCollections.customers, existing);
-        showToast("เธญเธฑเธเน€เธ”เธ•เธเนเธญเธกเธนเธฅเธชเธกเธฒเธเธดเธเนเธฅเนเธง");
+        showToast("อัปเดตข้อมูลสมาชิกแล้ว");
       } else {
         const customer = {
           id: crypto.randomUUID(),
@@ -1375,7 +1375,7 @@
         };
         state.customers.push(customer);
         await saveCloudDoc(cloudCollections.customers, customer);
-        showToast("เธชเธกเธฑเธเธฃเธชเธกเธฒเธเธดเธเธชเธณเน€เธฃเนเธ");
+        showToast("สมัครสมาชิกสำเร็จ");
       }
       saveState();
       event.currentTarget.reset();
@@ -1386,18 +1386,18 @@
       event.preventDefault();
       const customer = currentCustomer();
       if (!customer) {
-        showToast("เธเธฃเธธเธ“เธฒเธชเธกเธฑเธเธฃเธชเธกเธฒเธเธดเธเธเนเธญเธ");
+        showToast("กรุณาสมัครสมาชิกก่อน");
         return;
       }
       const refValue = $("#purchaseRef").value.trim();
       const proofValue = $("#purchaseProof").value.trim();
       if (!refValue || !proofValue) {
-        showToast("เธเธฃเธธเธ“เธฒเธเธฃเธญเธเน€เธฅเธเธเธดเธฅเนเธฅเธฐเธซเธฅเธฑเธเธเธฒเธเธเธฒเธฃเธเธทเนเธญ");
+        showToast("กรุณากรอกเลขบิลและหลักฐานการซื้อ");
         return;
       }
       const duplicateRef = [...state.pendingPurchases, ...state.transactions].some(item => item.ref && item.ref.toLowerCase() === refValue.toLowerCase());
       if (duplicateRef) {
-        showToast("เน€เธฅเธเธเธดเธฅเธเธตเนเธ–เธนเธเธชเนเธเธซเธฃเธทเธญเธชเธฐเธชเธกเนเธ•เนเธกเนเธฅเนเธง");
+        showToast("เลขบิลนี้ถูกส่งหรือสะสมแต้มแล้ว");
         return;
       }
       const pendingPurchase = {
@@ -1414,7 +1414,7 @@
       await saveCloudDoc(cloudCollections.pendingPurchases, pendingPurchase);
       saveState();
       event.currentTarget.reset();
-      showToast("เธชเนเธเธขเธญเธ”เธเธทเนเธญเนเธฅเนเธง เธฃเธญเธฃเนเธฒเธเธญเธเธธเธกเธฑเธ•เธด");
+      showToast("ส่งยอดซื้อแล้ว รอร้านอนุมัติ");
       showScreen("screenHome");
     }
 
@@ -1436,10 +1436,10 @@
       const approvedAmount = Math.max(0, Number(approvedAmountInput?.value || request.amount));
       const adminNote = adminNoteInput?.value.trim() || "";
       if (!approvedAmount) {
-        showToast("เธเธฃเธธเธ“เธฒเธฃเธฐเธเธธเธขเธญเธ”เธญเธเธธเธกเธฑเธ•เธดเธเธฃเธดเธ");
+        showToast("กรุณาระบุยอดอนุมัติจริง");
         return;
       }
-      const { points, transaction } = addApprovedPurchase(customer, approvedAmount, "เธฃเนเธฒเธเธญเธเธธเธกเธฑเธ•เธดเธขเธญเธ”เธเธทเนเธญ", {
+      const { points, transaction } = addApprovedPurchase(customer, approvedAmount, "ร้านอนุมัติยอดซื้อ", {
         ref: request.ref || "",
         proof: request.proof || "",
         requestedAmount: request.amount,
@@ -1462,7 +1462,7 @@
         totalPoints: customer.points
       });
       render();
-      showToast(`เธญเธเธธเธกเธฑเธ•เธดเนเธฅเนเธง +${points} เนเธ•เนเธก`);
+      showToast(`อนุมัติแล้ว +${points} แต้ม`);
     }
 
     async function rejectPurchase(id) {
@@ -1470,17 +1470,17 @@
       saveState();
       await deleteCloudDoc(cloudCollections.pendingPurchases, id);
       render();
-      showToast("เธเธเธดเน€เธชเธเธฃเธฒเธขเธเธฒเธฃเนเธฅเนเธง");
+      showToast("ปฏิเสธรายการแล้ว");
     }
 
     async function counterSale(event) {
       event.preventDefault();
       const customer = state.customers.find(item => item.phone === $("#counterPhone").value.trim());
       if (!customer) {
-        showToast("เนเธกเนเธเธเธชเธกเธฒเธเธดเธเธเธฒเธเน€เธเธญเธฃเนเธเธตเน");
+        showToast("ไม่พบสมาชิกจากเบอร์นี้");
         return;
       }
-      const { points, transaction } = addApprovedPurchase(customer, Number($("#counterAmount").value), "เธเธฑเธเธ—เธถเธเธเธฒเธเธซเธเนเธฒเธฃเนเธฒเธเธ”เนเธงเธขเน€เธเธญเธฃเนเนเธ—เธฃ");
+      const { points, transaction } = addApprovedPurchase(customer, Number($("#counterAmount").value), "บันทึกจากหน้าร้านด้วยเบอร์โทร");
       saveState();
       await Promise.all([
         saveCloudDoc(cloudCollections.customers, customer),
@@ -1489,13 +1489,13 @@
       await sendLineNotification(customer, "approved_points", {
         points,
         amount: transaction.amount,
-        ref: "เธเธฑเธเธ—เธถเธเธซเธเนเธฒเธฃเนเธฒเธ",
+        ref: "บันทึกหน้าร้าน",
         expiresAt: transaction.expiresAt,
         totalPoints: customer.points
       });
       event.currentTarget.reset();
       render();
-      showToast(`เธเธฑเธเธ—เธถเธเนเธฅเนเธง +${points} เนเธ•เนเธก`);
+      showToast(`บันทึกแล้ว +${points} แต้ม`);
     }
 
     async function redeemReward(id) {
@@ -1503,11 +1503,11 @@
       const customer = currentCustomer();
       if (!reward || !customer) return;
       if (customer.points < reward.points) {
-        showToast("เนเธ•เนเธกเนเธกเนเธเธญเธชเธณเธซเธฃเธฑเธเนเธฅเธเธฃเธฒเธเธงเธฑเธฅเธเธตเน");
+        showToast("แต้มไม่พอสำหรับแลกรางวัลนี้");
         return;
       }
       customer.points -= reward.points;
-      const transaction = { id: crypto.randomUUID(), customerId: customer.id, type: "redeem", points: reward.points, amount: 0, note: `เนเธฅเธ ${reward.name}`, date: now() };
+      const transaction = { id: crypto.randomUUID(), customerId: customer.id, type: "redeem", points: reward.points, amount: 0, note: `แลก ${reward.name}`, date: now() };
       const redemption = { id: crypto.randomUUID(), customerId: customer.id, rewardId: reward.id, rewardName: reward.name, points: reward.points, transactionId: transaction.id, date: now(), status: "requested" };
       state.redemptions.push(redemption);
       state.transactions.push(transaction);
@@ -1518,7 +1518,7 @@
         saveCloudDoc(cloudCollections.transactions, transaction)
       ]);
       render();
-      showToast("เธชเนเธเธเธณเธเธญเนเธฅเธเธเธญเธเนเธฅเนเธง");
+      showToast("ส่งคำขอแลกของแล้ว");
     }
 
     async function updateRedemptionStatus(id, status) {
@@ -1537,7 +1537,7 @@
           type: "refund",
           points: Number(redemption.points || 0),
           amount: 0,
-          note: `เธเธทเธเนเธ•เนเธกเธเธฒเธเธเธณเธเธญเนเธฅเธ ${redemption.rewardName}`,
+          note: `คืนแต้มจากคำขอแลก ${redemption.rewardName}`,
           redemptionId: redemption.id,
           date: redemption.refundedAt
         };
@@ -1562,7 +1562,7 @@
         });
       }
       render();
-      showToast(status === "completed" ? "เธญเธฑเธเน€เธ”เธ•เธงเนเธฒเธเธฑเธ”เธเธฒเธฃเนเธฅเนเธง" : "เธขเธเน€เธฅเธดเธเธเธณเธเธญเนเธฅเธฐเธเธทเธเนเธ•เนเธกเนเธฅเนเธง");
+      showToast(status === "completed" ? "อัปเดตว่าจัดการแล้ว" : "ยกเลิกคำขอและคืนแต้มแล้ว");
     }
 
     async function notifyExpiringPoints(id) {
@@ -1579,7 +1579,7 @@
         saveState();
         await saveCloudDoc(cloudCollections.transactions, transaction);
         render();
-        showToast("เธชเนเธเน€เธ•เธทเธญเธเนเธ•เนเธกเนเธเธฅเนเธซเธกเธ”เธญเธฒเธขเธธเนเธฅเนเธง");
+        showToast("ส่งเตือนแต้มใกล้หมดอายุแล้ว");
       }
     }
 
@@ -1599,7 +1599,7 @@
       await saveCloudDoc(cloudCollections.rewards, reward);
       event.currentTarget.reset();
       render();
-      showToast("เน€เธเธดเนเธกเธเธญเธเธฃเธฒเธเธงเธฑเธฅเนเธฅเนเธง");
+      showToast("เพิ่มของรางวัลแล้ว");
     }
 
     async function toggleReward(id) {
@@ -1610,16 +1610,16 @@
       saveState();
       await saveCloudDoc(cloudCollections.rewards, reward);
       render();
-      showToast(reward.active ? "เน€เธเธดเธ”เนเธซเนเนเธฅเธเนเธฅเนเธง" : "เธเธดเธ”เธเธญเธเธฃเธฒเธเธงเธฑเธฅเนเธฅเนเธง");
+      showToast(reward.active ? "เปิดให้แลกแล้ว" : "ปิดของรางวัลแล้ว");
     }
 
     async function deleteReward(id) {
-      if (!confirm("เธฅเธเธเธญเธเธฃเธฒเธเธงเธฑเธฅเธเธตเน?")) return;
+      if (!confirm("ลบของรางวัลนี้?")) return;
       state.rewards = state.rewards.filter(item => item.id !== id);
       saveState();
       await deleteCloudDoc(cloudCollections.rewards, id);
       render();
-      showToast("เธฅเธเธเธญเธเธฃเธฒเธเธงเธฑเธฅเนเธฅเนเธง");
+      showToast("ลบของรางวัลแล้ว");
     }
 
     function render() {
@@ -1660,4 +1660,3 @@
   </script>
 </body>
 </html>
-
