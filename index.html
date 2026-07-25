@@ -335,12 +335,49 @@
     }
 
     .member-card {
-      background: white;
-      border: 1px solid var(--line);
+      background:
+        radial-gradient(circle at top right, rgba(6, 199, 85, 0.18), transparent 34%),
+        linear-gradient(135deg, #ffffff 0%, #f8fff9 100%);
+      border: 1px solid #cfe5d8;
       border-radius: 8px;
       padding: 16px;
       display: grid;
       gap: 12px;
+    }
+
+    .member-card .member-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .member-card .member-name {
+      display: grid;
+      gap: 4px;
+    }
+
+    .member-card .member-name strong {
+      font-size: 18px;
+    }
+
+    .member-card .member-code {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .points-label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: -6px;
+    }
+
+    .member-help {
+      border-top: 1px solid var(--line);
+      padding-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
     }
 
     .points {
@@ -352,18 +389,96 @@
 
     .quick {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 10px;
     }
 
     .quick button {
-      min-height: 72px;
+      min-height: 76px;
       border: 1px solid var(--line);
       background: white;
       border-radius: 8px;
       cursor: pointer;
       color: var(--ink);
       font-weight: 700;
+      display: grid;
+      gap: 4px;
+      place-items: center;
+      padding: 10px 8px;
+      line-height: 1.25;
+    }
+
+    .quick button::before {
+      content: attr(data-icon);
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: #eef8f1;
+      color: var(--deep);
+      font-size: 15px;
+    }
+
+    .quick button:hover {
+      border-color: #b7d6c5;
+      box-shadow: 0 8px 22px rgba(18, 50, 43, 0.08);
+    }
+
+    .home-highlights {
+      display: grid;
+      gap: 10px;
+    }
+
+    .mini-stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .mini-stat {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      display: grid;
+      gap: 4px;
+    }
+
+    .mini-stat span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .mini-stat strong {
+      font-size: 20px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    .section-title h4 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .soft-card {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .soft-card small {
+      color: var(--muted);
+      line-height: 1.45;
     }
 
     .view { display: none; }
@@ -483,6 +598,14 @@
       width: 100%;
     }
 
+    body.member-mode .phone-head {
+      padding: 18px 16px;
+    }
+
+    body.member-mode .phone-body {
+      gap: 14px;
+    }
+
     body.admin-mode .shell {
       grid-template-columns: 260px 1fr;
     }
@@ -502,6 +625,8 @@
     @media (max-width: 560px) {
       .top { flex-direction: column; }
       .form, .quick { grid-template-columns: 1fr; }
+      body.member-mode .quick { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .mini-stats { grid-template-columns: 1fr; }
       nav { grid-template-columns: 1fr; }
       .points { font-size: 36px; }
     }
@@ -543,13 +668,14 @@
             <section class="customer-screen active" id="screenHome">
               <div class="member-card" id="memberSummary"></div>
               <div class="quick">
-                <button data-screen="screenRegister">สมัครสมาชิก</button>
-                <button data-screen="screenPoints">เช็คแต้ม</button>
-                <button data-screen="screenSubmit">เพิ่มแต้ม</button>
-                <button data-screen="screenRedeem">แลกของ</button>
-                <button data-screen="screenHistory">ประวัติซื้อ</button>
-                <button data-screen="screenRewards">ของรางวัล</button>
+                <button data-screen="screenRegister" data-icon="+">สมัครสมาชิก</button>
+                <button data-screen="screenPoints" data-icon="P">เช็คแต้ม</button>
+                <button data-screen="screenSubmit" data-icon="฿">เพิ่มแต้ม</button>
+                <button data-screen="screenRedeem" data-icon="↔">แลกของ</button>
+                <button data-screen="screenHistory" data-icon="H">ประวัติซื้อ</button>
+                <button data-screen="screenRewards" data-icon="★">ของรางวัล</button>
               </div>
+              <div class="home-highlights" id="homeHighlights"></div>
             </section>
 
             <section class="customer-screen" id="screenRegister">
@@ -763,6 +889,7 @@
       navMember: $("#navMember"),
       navAdmin: $("#navAdmin"),
       memberSummary: $("#memberSummary"),
+      homeHighlights: $("#homeHighlights"),
       pointsDetail: $("#pointsDetail"),
       redeemList: $("#redeemList"),
       rewardCatalog: $("#rewardCatalog"),
@@ -1072,28 +1199,49 @@
       const customer = currentCustomer();
       if (!customer) {
         els.memberSummary.innerHTML = `
-          <strong>ยังไม่ได้สมัครสมาชิก</strong>
-          <small>กดสมัครสมาชิกเพื่อผูก LINE user ID กับเบอร์โทรและรหัสสมาชิก</small>
-          <small>${isLiffReady ? `กำลังใช้บัญชี LINE: ${escapeHtml(currentLineDisplayName)}` : "โหมดทดลองนอก LINE"}</small>
+          <div class="member-top">
+            <div class="member-name">
+              <strong>ยินดีต้อนรับ</strong>
+              <span class="member-code">${isLiffReady ? `บัญชี LINE: ${escapeHtml(currentLineDisplayName)}` : "โหมดทดลองนอก LINE"}</span>
+            </div>
+            <span class="pill warn">ยังไม่เป็นสมาชิก</span>
+          </div>
+          <div class="points-label">แต้มสะสม</div>
+          <div class="points">0</div>
+          <div class="member-help">สมัครสมาชิกครั้งเดียวเพื่อเช็คแต้ม แจ้งยอดซื้อ และแลกของรางวัลผ่าน LINE OA ของร้าน</div>
+        `;
+        els.homeHighlights.innerHTML = `
+          <div class="soft-card">
+            <strong>เริ่มใช้งานสมาชิก</strong>
+            <small>กดสมัครสมาชิก แล้วกรอกชื่อและเบอร์โทร ระบบจะผูกกับบัญชี LINE นี้เพื่อสะสมแต้ม</small>
+            <button class="btn primary" data-screen="screenRegister">สมัครสมาชิก</button>
+          </div>
         `;
         els.pointsDetail.innerHTML = `<div class="empty">กรุณาสมัครสมาชิกก่อนเช็คแต้ม</div>`;
         els.customerHistory.innerHTML = `<div class="empty">ยังไม่มีประวัติ</div>`;
       } else {
+        const pendingCount = state.pendingPurchases.filter(item => item.customerId === customer.id).length;
+        const pendingRedemptions = state.redemptions.filter(item => item.customerId === customer.id && isPendingRedemption(item)).length;
         els.memberSummary.innerHTML = `
-          <div class="item-row">
-            <div>
+          <div class="member-top">
+            <div class="member-name">
               <strong>${escapeHtml(customer.name)}</strong>
-              <small>${escapeHtml(customer.code)} · ${escapeHtml(customer.phone)}</small>
+              <span class="member-code">${escapeHtml(customer.code)} · ${escapeHtml(customer.phone)}</span>
             </div>
             <span class="pill">${money(customer.points)} แต้ม</span>
           </div>
+          <div class="points-label">แต้มสะสมพร้อมใช้</div>
           <div class="points">${money(customer.points)}</div>
-          <small>ซื้อครบ 100 บาท = 1 แต้ม ยอดซื้อที่ลูกค้าแจ้งต้องรอร้านอนุมัติก่อน</small>
-          <small>${isLiffReady ? `บัญชี LINE: ${escapeHtml(currentLineDisplayName)}` : "โหมดทดลองนอก LINE"}</small>
+          <div class="mini-stats">
+            <div class="mini-stat"><span>รออนุมัติยอดซื้อ</span><strong>${money(pendingCount)}</strong></div>
+            <div class="mini-stat"><span>รอจัดการแลกของ</span><strong>${money(pendingRedemptions)}</strong></div>
+          </div>
+          <div class="member-help">ซื้อครบ 100 บาท = 1 แต้ม ยอดซื้อที่แจ้งจะเข้าแต้มหลังร้านตรวจและอนุมัติ</div>
         `;
         const nextExpiry = state.transactions
           .filter(item => item.customerId === customer.id && item.type === "earn")
           .sort((a, b) => new Date(a.expiresAt) - new Date(b.expiresAt))[0];
+        renderHomeHighlights(customer, nextExpiry);
         els.pointsDetail.innerHTML = `
           <div class="points">${money(customer.points)}</div>
           <small>รหัสสมาชิก ${escapeHtml(customer.code)}</small>
@@ -1102,6 +1250,60 @@
         renderCustomerHistory(customer);
       }
       renderRewards();
+    }
+
+    function renderHomeHighlights(customer, nextExpiry) {
+      const pendingPurchases = state.pendingPurchases
+        .filter(item => item.customerId === customer.id)
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+      const pendingRedemptions = state.redemptions
+        .filter(item => item.customerId === customer.id && isPendingRedemption(item))
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+      const latestTransaction = state.transactions
+        .filter(item => item.customerId === customer.id)
+        .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+      const statusCards = [];
+      if (pendingPurchases[0]) {
+        const item = pendingPurchases[0];
+        statusCards.push(`
+          <div class="soft-card">
+            <div class="section-title"><h4>ยอดซื้อรออนุมัติ</h4><span class="pill warn">รอตรวจ</span></div>
+            <small>เลขบิล ${escapeHtml(item.ref || "-")} · ${money(item.amount)} บาท · คาดว่าจะได้ ${money(pointFromAmount(item.amount))} แต้ม</small>
+          </div>
+        `);
+      }
+      if (pendingRedemptions[0]) {
+        const item = pendingRedemptions[0];
+        statusCards.push(`
+          <div class="soft-card">
+            <div class="section-title"><h4>คำขอแลกของ</h4><span class="pill warn">รอดำเนินการ</span></div>
+            <small>${escapeHtml(item.rewardName || "-")} · ใช้ ${money(item.points)} แต้ม</small>
+          </div>
+        `);
+      }
+      if (!statusCards.length) {
+        statusCards.push(`
+          <div class="soft-card">
+            <div class="section-title"><h4>สถานะล่าสุด</h4><span class="pill">พร้อมใช้งาน</span></div>
+            <small>ยังไม่มีรายการรอร้านจัดการ สามารถแจ้งยอดซื้อหรือแลกของรางวัลได้เลย</small>
+          </div>
+        `);
+      }
+
+      els.homeHighlights.innerHTML = `
+        <div class="section-title">
+          <h4>สรุปของฉัน</h4>
+          <span class="pill">หมดอายุถัดไป ${nextExpiry ? new Date(nextExpiry.expiresAt).toLocaleDateString("th-TH") : "-"}</span>
+        </div>
+        ${statusCards.join("")}
+        ${latestTransaction ? `
+          <div class="soft-card">
+            <strong>รายการล่าสุด</strong>
+            <small>${latestTransaction.type === "earn" ? "ได้รับแต้ม" : latestTransaction.type === "refund" ? "คืนแต้ม" : "ใช้แต้ม"} · ${new Date(latestTransaction.date).toLocaleString("th-TH")} · ${money(latestTransaction.points)} แต้ม</small>
+          </div>
+        ` : ""}
+      `;
     }
 
     function renderCustomerHistory(customer) {
@@ -1652,7 +1854,10 @@
     }
 
     window.addEventListener("hashchange", route);
-    document.querySelectorAll("[data-screen]").forEach(button => button.addEventListener("click", () => showScreen(button.dataset.screen)));
+    document.addEventListener("click", event => {
+      const screenButton = event.target.closest("[data-screen]");
+      if (screenButton) showScreen(screenButton.dataset.screen);
+    });
     $("#registerForm").addEventListener("submit", registerCustomer);
     $("#submitPurchaseForm").addEventListener("submit", submitPurchase);
     $("#counterSaleForm").addEventListener("submit", counterSale);
