@@ -876,6 +876,10 @@
       return Number(value || 0).toLocaleString("th-TH");
     }
 
+    function isPendingRedemption(redemption) {
+      return !redemption?.status || ["requested", "request", "pending"].includes(redemption.status);
+    }
+
     function memberCode() {
       return "MB-" + String(state.customers.length + 1).padStart(4, "0");
     }
@@ -1291,6 +1295,7 @@
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .map(item => {
           const customer = state.customers.find(entry => entry.id === item.customerId);
+          const isPending = isPendingRedemption(item);
           const statusText = item.status === "completed" ? "จัดการแล้ว" : item.status === "cancelled" ? "ยกเลิก" : "รอดำเนินการ";
           return `
             <div class="item">
@@ -1299,13 +1304,13 @@
                   <strong>${escapeHtml(item.rewardName || "-")}</strong>
                   <small>${escapeHtml(customer?.name || "-")} · ${escapeHtml(customer?.phone || "-")} · ใช้ ${money(item.points)} แต้ม</small>
                 </div>
-                <span class="pill ${item.status === "requested" ? "warn" : ""}">${statusText}</span>
+                <span class="pill ${isPending ? "warn" : ""}">${statusText}</span>
               </div>
               <small>${new Date(item.date).toLocaleString("th-TH")}</small>
               ${item.refundedAt ? `<small>คืนแต้มแล้ว: ${new Date(item.refundedAt).toLocaleString("th-TH")}</small>` : ""}
               <div class="actions">
-                <button class="btn primary" data-complete-redemption="${item.id}" ${item.status !== "requested" ? "disabled" : ""}>จัดการแล้ว</button>
-                <button class="btn danger" data-cancel-redemption="${item.id}" ${item.status !== "requested" ? "disabled" : ""}>ยกเลิกและคืนแต้ม</button>
+                <button class="btn primary" data-complete-redemption="${item.id}" ${!isPending ? "disabled" : ""}>จัดการแล้ว</button>
+                <button class="btn danger" data-cancel-redemption="${item.id}" ${!isPending ? "disabled" : ""}>ยกเลิกและคืนแต้ม</button>
               </div>
             </div>
           `;
@@ -1524,7 +1529,18 @@
     async function updateRedemptionStatus(id, status) {
       const redemption = state.redemptions.find(item => item.id === id);
       const customer = state.customers.find(item => item.id === redemption?.customerId);
-      if (!redemption || !customer || redemption.status !== "requested") return;
+      if (!redemption) {
+        showToast("ไม่พบคำขอแลกของนี้");
+        return;
+      }
+      if (!customer) {
+        showToast("ไม่พบสมาชิกของคำขอแลกนี้");
+        return;
+      }
+      if (!isPendingRedemption(redemption)) {
+        showToast("คำขอนี้ถูกจัดการไปแล้ว");
+        return;
+      }
       redemption.status = status;
       redemption.updatedAt = now();
       const writes = [];
