@@ -158,6 +158,33 @@
       color: var(--danger);
     }
 
+    .admin-shortcuts {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 2px 0 8px;
+      scrollbar-width: none;
+    }
+
+    .admin-shortcuts::-webkit-scrollbar {
+      display: none;
+    }
+
+    .admin-shortcuts a {
+      flex: 0 0 auto;
+      min-height: 42px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      color: var(--deep);
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+      font-weight: 700;
+      box-shadow: 0 8px 20px rgba(18, 50, 43, 0.05);
+    }
+
     .grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -625,10 +652,66 @@
 
     @media (max-width: 920px) {
       .shell { grid-template-columns: 1fr; }
-      aside { position: sticky; top: 0; z-index: 5; }
+      aside {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        padding: 12px;
+        gap: 10px;
+      }
+      aside .brand {
+        grid-template-columns: 36px 1fr;
+      }
+      aside .logo {
+        width: 36px;
+        height: 36px;
+        font-size: 12px;
+      }
+      aside .brand h1 {
+        font-size: 16px;
+      }
+      aside .brand p,
+      .side-note {
+        display: none;
+      }
       nav { grid-template-columns: repeat(2, 1fr); }
+      nav a {
+        min-height: 42px;
+        text-align: center;
+        display: grid;
+        place-items: center;
+        padding: 8px;
+      }
       main { padding: 16px; }
       .grid { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .top {
+        position: sticky;
+        top: 116px;
+        z-index: 4;
+        background: rgba(245, 247, 243, 0.94);
+        padding: 8px 0 10px;
+        backdrop-filter: blur(10px);
+      }
+      .top p { display: none; }
+      .card-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .card-head input {
+        width: 100%;
+      }
+      .list {
+        max-height: none;
+        overflow: visible;
+      }
+      .actions {
+        justify-content: stretch;
+      }
+      .actions .btn,
+      .item-row .btn {
+        flex: 1 1 130px;
+      }
     }
 
     @media (max-width: 560px) {
@@ -638,6 +721,22 @@
       .mini-stats { grid-template-columns: 1fr; }
       nav { grid-template-columns: 1fr; }
       .points { font-size: 36px; }
+      main { padding: 12px; }
+      body.admin-mode main { padding-bottom: 28px; }
+      .stats { grid-template-columns: 1fr 1fr; }
+      .stat { padding: 12px; }
+      .stat strong { font-size: 22px; }
+      .card-body, .card-head { padding: 12px; }
+      .btn {
+        min-height: 46px;
+        width: 100%;
+      }
+      .item-row {
+        flex-direction: column;
+      }
+      .pill {
+        align-self: flex-start;
+      }
     }
   </style>
 </head>
@@ -771,6 +870,14 @@
           <button class="btn" id="adminLogoutBtn" type="button">ออกจากหลังบ้าน</button>
         </div>
 
+        <div class="admin-shortcuts" aria-label="เมนูหลังบ้าน">
+          <a href="#admin-pending">อนุมัติแต้ม</a>
+          <a href="#admin-counter">เพิ่มแต้มหน้าร้าน</a>
+          <a href="#admin-customers">สมาชิก</a>
+          <a href="#admin-redemptions">คำขอแลกของ</a>
+          <a href="#admin-rewards">ของรางวัล</a>
+        </div>
+
         <section class="stats">
           <div class="stat"><span>สมาชิก</span><strong id="statCustomers">0</strong></div>
           <div class="stat"><span>แต้มรวม</span><strong id="statPoints">0</strong></div>
@@ -780,12 +887,12 @@
         </section>
 
         <section class="grid">
-          <div class="card">
+          <div class="card" id="admin-pending">
             <div class="card-head"><h3>คำขอเพิ่มแต้ม</h3><span class="pill warn">ต้องอนุมัติก่อนแต้มเข้า</span></div>
             <div class="card-body"><div class="list" id="pendingList"></div></div>
           </div>
 
-          <div class="card">
+          <div class="card" id="admin-counter">
             <div class="card-head"><h3>บันทึกยอดซื้อจากเบอร์โทร</h3><span class="pill">หน้าร้านใช้</span></div>
             <div class="card-body">
               <form class="form" id="counterSaleForm">
@@ -798,7 +905,7 @@
         </section>
 
         <section class="grid">
-          <div class="card">
+          <div class="card" id="admin-customers">
             <div class="card-head"><h3>สมาชิกทั้งหมด</h3><input id="searchCustomer" placeholder="ค้นหาชื่อ เบอร์ รหัสสมาชิก"></div>
             <div class="card-body"><div class="list" id="customerList"></div></div>
           </div>
@@ -811,14 +918,14 @@
             </div>
           </div>
 
-          <div class="card">
+          <div class="card" id="admin-redemptions">
             <div class="card-head"><h3>คำขอแลกของ</h3><span class="pill warn">รอดำเนินการ</span></div>
             <div class="card-body"><div class="list" id="redemptionList"></div></div>
           </div>
         </section>
 
         <section class="grid">
-          <div class="card">
+          <div class="card" id="admin-rewards">
             <div class="card-head"><h3>เพิ่มของรางวัล</h3><span class="pill">แอดมินจัดการเอง</span></div>
             <div class="card-body">
               <form class="form" id="rewardForm">
