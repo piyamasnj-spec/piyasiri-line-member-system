@@ -25,6 +25,18 @@ function normalizePhone(value) {
   return String(value || "").replace(/\D/g, "");
 }
 
+function phoneVariants(value) {
+  const phone = normalizePhone(value);
+  const variants = new Set([phone]);
+  if (phone.length === 9) variants.add(`0${phone}`);
+  if (phone.startsWith("66") && phone.length === 11) variants.add(`0${phone.slice(2)}`);
+  if (phone.startsWith("0") && phone.length === 10) {
+    variants.add(phone.slice(1));
+    variants.add(`66${phone.slice(1)}`);
+  }
+  return variants;
+}
+
 function toArray(value) {
   return Object.entries(value || {}).map(([key, item]) => ({
     ...item,
@@ -118,6 +130,7 @@ export async function handler(event) {
 
     const body = JSON.parse(event.body || "{}");
     const phone = normalizePhone(body.phone);
+    const requestedPhoneVariants = phoneVariants(phone);
     const amount = Math.max(0, Number(body.amount || 0));
     const points = Math.floor(amount / POINT_RATE);
     const ref = String(body.ref || "").trim();
@@ -133,7 +146,10 @@ export async function handler(event) {
 
     const customers = toArray(customersRaw);
     const transactions = toArray(transactionsRaw);
-    const customer = customers.find(item => normalizePhone(item.phone) === phone);
+    const customer = customers.find(item => {
+      const customerPhones = phoneVariants(item.phone);
+      return [...requestedPhoneVariants].some(candidate => customerPhones.has(candidate));
+    });
 
     if (!customer) {
       return json(404, { ok: false, status: "customer_not_found", message: "customer not found" });
