@@ -26,6 +26,7 @@
       margin: 0;
       background: var(--bg);
       color: var(--ink);
+      overflow-x: hidden;
     }
 
     button, input, select, textarea {
@@ -651,7 +652,20 @@
     }
 
     @media (max-width: 920px) {
-      .shell { grid-template-columns: 1fr; }
+      .shell,
+      body.admin-mode .shell {
+        width: 100%;
+        grid-template-columns: minmax(0, 1fr);
+      }
+      body.admin-mode aside {
+        display: none;
+      }
+      body.admin-mode main {
+        width: 100%;
+        max-width: 100vw;
+        padding: 12px;
+        overflow-x: hidden;
+      }
       aside {
         position: sticky;
         top: 0;
@@ -687,7 +701,7 @@
       .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .top {
         position: sticky;
-        top: 116px;
+        top: 0;
         z-index: 4;
         background: rgba(245, 247, 243, 0.94);
         padding: 8px 0 10px;
@@ -730,6 +744,8 @@
       .btn {
         min-height: 46px;
         width: 100%;
+        white-space: normal;
+        text-align: center;
       }
       .item-row {
         flex-direction: column;
