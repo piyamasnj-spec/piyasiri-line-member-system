@@ -1,100 +1,112 @@
-const LINE_PUSH_ENDPOINT = "https://api.line.me/v2/bot/message/push";
-const DEFAULT_DATABASE_URL = "https://piyasiri-member-system-default-rtdb.asia-southeast1.firebasedatabase.app";
-const EXPIRY_WINDOW_DAYS = 30;
+# ระบบสมาชิก LINE OA - สถานะและขั้นตอนถัดไป
 
-function databaseUrl() {
-  return (process.env.FIREBASE_DATABASE_URL || DEFAULT_DATABASE_URL).replace(/\/$/, "");
-}
+อัปเดตในชุดนี้: 2026-06-30
 
-function toArray(value) {
-  return Object.entries(value || {}).map(([id, item]) => ({ id, ...item }));
-}
+## สถานะตอนนี้
 
-function formatDate(value) {
-  return new Intl.DateTimeFormat("th-TH", { dateStyle: "medium", timeZone: "Asia/Bangkok" }).format(new Date(value));
-}
+ระบบหลักมีแล้ว:
 
-function money(value) {
-  return Number(value || 0).toLocaleString("th-TH");
-}
+- สมัครสมาชิกผ่าน LIFF
+- ผูก LINE user ID กับสมาชิก
+- เช็กแต้ม
+- ลูกค้าส่งยอดซื้อเพื่อขอเพิ่มแต้ม
+- แอดมินอนุมัติ/ปรับยอดก่อนแต้มเข้า
+- บันทึกยอดซื้อจากเบอร์โทร
+- ประวัติซื้อ/ประวัติแต้ม
+- แลกของรางวัล
+- แอดมินเพิ่ม/ปิด/ลบของรางวัล
+- Firebase Realtime Database
+- Netlify Functions สำหรับ LINE Messaging API
+- ยกเลิกคำขอแลกของและคืนแต้ม
+- LINE แจ้งเตือนอนุมัติแต้ม/จัดการแลกของ/ยกเลิกคืนแต้ม
+- ด่านรหัสผ่านหลังบ้านแบบพื้นฐาน
 
-function expiryText(customer, transaction) {
-  return [
-    `สวัสดี ${customer.name || "คุณลูกค้า"}`,
-    `แจ้งเตือนแต้มใกล้หมดอายุ`,
-    `${money(transaction.points)} แต้ม จะหมดอายุวันที่ ${formatDate(transaction.expiresAt)}`,
-    `แต้มรวมปัจจุบัน: ${money(customer.points)} แต้ม`,
-    `สามารถเข้ามาแลกของรางวัลได้ใน LINE OA ของร้าน`
-  ].join("\n");
-}
+## รหัสหลังบ้าน
 
-async function loadCollection(name) {
-  const response = await fetch(`${databaseUrl()}/${name}.json`);
-  if (!response.ok) throw new Error(`Firebase load failed: ${name}`);
-  return toArray(await response.json());
-}
+รหัสเริ่มต้นในไฟล์ `index.html` คือ:
 
-async function patchTransaction(id, updates) {
-  const response = await fetch(`${databaseUrl()}/transactions/${id}.json`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(updates)
-  });
-  if (!response.ok) throw new Error(`Firebase update failed: ${id}`);
-}
+```text
+2468
+```
 
-async function pushLineMessage(to, text) {
-  const token = process.env.LINE_CHANNEL_ACCESS_TOKEN;
-  if (!token) throw new Error("missing LINE_CHANNEL_ACCESS_TOKEN");
-  const response = await fetch(LINE_PUSH_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify({
-      to,
-      messages: [{ type: "text", text }]
-    })
-  });
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`LINE push failed: ${response.status} ${body}`);
-  }
-}
+ก่อน deploy จริง ให้เปิด `index.html` แล้วค้นหา:
 
-export default async function handler() {
-  const now = Date.now();
-  const end = now + EXPIRY_WINDOW_DAYS * 24 * 60 * 60 * 1000;
-  const [customers, transactions] = await Promise.all([
-    loadCollection("customers"),
-    loadCollection("transactions")
-  ]);
-  const customersById = new Map(customers.map(customer => [customer.id, customer]));
-  const targets = transactions.filter(transaction => {
-    if (transaction.type !== "earn" || !transaction.expiresAt || transaction.expiryNotifiedAt) return false;
-    const expiry = new Date(transaction.expiresAt).getTime();
-    return expiry >= now && expiry <= end;
-  });
+```js
+const ADMIN_PASSCODE = "2468";
+```
 
-  let sent = 0;
-  for (const transaction of targets) {
-    const customer = customersById.get(transaction.customerId);
-    if (!customer?.lineUserId) continue;
-    await pushLineMessage(customer.lineUserId, expiryText(customer, transaction));
-    await patchTransaction(transaction.id, {
-      expiryNotifiedAt: new Date().toISOString(),
-      expiryNotificationStatus: "sent"
-    });
-    sent += 1;
-  }
+เปลี่ยนเป็นรหัสของร้านเอง
 
-  console.log(`Expiring point notifications sent: ${sent}`);
-  return new Response(JSON.stringify({ ok: true, sent }), {
-    headers: { "Content-Type": "application/json" }
-  });
-}
+หมายเหตุ: ด่านนี้เป็นการกันคนทั่วไปแบบ frontend เท่านั้น ถ้าต้องการล็อกแบบจริงจัง ต้องเพิ่ม Firebase Auth และตั้ง Firebase Security Rules
 
-export const config = {
-  schedule: "@daily"
-};
+## ไฟล์ที่ต้อง deploy
+
+ใช้ทั้งโฟลเดอร์นี้:
+
+```text
+outputs/line-member-system-ready
+```
+
+ไฟล์สำคัญ:
+
+- `index.html`
+- `netlify.toml`
+- `netlify/functions/send-line-message.mjs`
+- `netlify/functions/notify-expiring-points.mjs`
+
+## Environment Variable ใน Netlify
+
+ต้องมี:
+
+```text
+LINE_CHANNEL_ACCESS_TOKEN
+```
+
+ค่านี้ต้องเป็น Channel access token จาก LINE Developers > Messaging API
+
+## ขั้นตอน deploy หลัง Netlify ใช้งานได้
+
+1. เปิด Netlify project: `piyasiri-line-member-system`
+2. ตรวจ Environment Variable ว่ามี `LINE_CHANNEL_ACCESS_TOKEN`
+3. Deploy โฟลเดอร์/รีโปที่มีไฟล์ชุดนี้
+4. รอสถานะ Published
+5. เปิดเว็บ:
+
+```text
+https://piyasiri-line-member-system.netlify.app
+```
+
+6. เปิดหลังบ้าน:
+
+```text
+https://piyasiri-line-member-system.netlify.app/#admin
+```
+
+ต้องเห็นหน้ากรอกรหัสหลังบ้าน
+
+## Checklist ทดสอบหลัง deploy
+
+1. เปิด `#admin` แล้วต้องติดหน้ารหัสผ่าน
+2. ใส่รหัสแล้วเข้าหลังบ้านได้
+3. สมัครสมาชิกผ่าน LIFF ใน LINE
+4. ลูกค้าส่งยอดซื้อเพื่อขอเพิ่มแต้ม
+5. แอดมินอนุมัติยอดซื้อ
+6. แต้มลูกค้าเพิ่มถูกต้อง
+7. ลูกค้าได้รับ LINE แจ้งเตือนอนุมัติแต้ม
+8. ลูกค้าแลกของรางวัล
+9. แต้มถูกหัก
+10. แอดมินกดจัดการแล้ว
+11. ลูกค้าได้รับ LINE แจ้งเตือนแลกของเรียบร้อย
+12. ลูกค้าแลกของอีกครั้ง
+13. แอดมินกดยกเลิกและคืนแต้ม
+14. แต้มลูกค้ากลับมา
+15. ประวัติมีรายการคืนแต้ม
+16. ลูกค้าได้รับ LINE แจ้งเตือนยกเลิกและคืนแต้ม
+
+## ข้อควรระวัง
+
+- ถ้าเปิดเว็บนอก LINE จะเป็น Demo user และอาจส่ง LINE ไม่ได้
+- ลูกค้าต้องเป็นเพื่อนกับ LINE OA ร้าน
+- ถ้า Netlify Function เปิดแล้วขึ้น `{"error":"method not allowed"}` ถือว่าฟังก์ชันขึ้นแล้ว
+- ถ้าฟังก์ชัน 404 ให้เช็ก `netlify.toml` และการ deploy โฟลเดอร์ `netlify/functions`
+- ถ้า LINE ไม่แจ้งเตือน ให้เช็ก `LINE_CHANNEL_ACCESS_TOKEN`
