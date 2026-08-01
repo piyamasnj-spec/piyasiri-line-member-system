@@ -301,6 +301,15 @@
       line-height: 1.45;
     }
 
+    .reward-image {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #f1f5f2;
+    }
+
     .actions {
       display: flex;
       gap: 8px;
@@ -817,6 +826,7 @@
                 <div class="field"><label for="rewardPoints">แต้มที่ใช้</label><input id="rewardPoints" required type="number" min="0" placeholder="เช่น 100"></div>
                 <div class="field"><label for="rewardStock">จำนวนคงเหลือ</label><input id="rewardStock" placeholder="เว้นว่างถ้าไม่จำกัด"></div>
                 <div class="field"><label for="rewardActive">สถานะ</label><select id="rewardActive"><option value="true">เปิดให้แลก</option><option value="false">ปิดไว้ก่อน</option></select></div>
+                <div class="field full"><label for="rewardImageUrl">ลิงก์รูปภาพ</label><input id="rewardImageUrl" type="url" placeholder="วางลิงก์รูปของรางวัล เช่น Google Drive หรือรูปจากเว็บไซต์"></div>
                 <div class="field full"><label for="rewardDescription">รายละเอียด</label><textarea id="rewardDescription" placeholder="เงื่อนไข หรือหมายเหตุของรางวัล"></textarea></div>
                 <div class="field full"><button class="btn primary" type="submit">เพิ่มของรางวัล</button></div>
               </form>
@@ -985,7 +995,7 @@
     }
 
     async function seedDefaultRewards() {
-      state.rewards = defaultRewards.map(item => ({ ...item, active: true, stock: "", description: "" }));
+      state.rewards = defaultRewards.map(item => ({ ...item, active: true, stock: "", imageUrl: "", description: "" }));
       await Promise.all(state.rewards.map(item => saveCloudDoc(cloudCollections.rewards, item)));
     }
 
@@ -1124,7 +1134,7 @@
         transactions: [],
         pendingPurchases: [],
         redemptions: [],
-        rewards: state.rewards.length ? state.rewards : defaultRewards.map(item => ({ ...item, active: true, stock: "", description: "" }))
+        rewards: state.rewards.length ? state.rewards : defaultRewards.map(item => ({ ...item, active: true, stock: "", imageUrl: "", description: "" }))
       };
       state.customers.forEach(customer => {
         state.transactions.push({ id: crypto.randomUUID(), customerId: customer.id, type: "earn", amount: customer.totalSpend, points: customer.points, note: "ยอดสะสมเริ่มต้น", date, expiresAt: addMonths(date, 12) });
@@ -1358,11 +1368,29 @@
       }).join("");
     }
 
+    function rewardImageUrl(reward) {
+      const raw = String(reward?.imageUrl || "").trim();
+      if (!raw) return "";
+      const driveFile = raw.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+      const driveId = raw.match(/[?&]id=([^&]+)/);
+      const fileId = driveFile?.[1] || driveId?.[1];
+      if (fileId) return `https://drive.google.com/uc?export=view&id=${encodeURIComponent(fileId)}`;
+      if (/^https?:\/\//i.test(raw)) return raw;
+      return "";
+    }
+
+    function rewardImageMarkup(reward) {
+      const imageUrl = rewardImageUrl(reward);
+      if (!imageUrl) return "";
+      return `<img class="reward-image" src="${escapeAttr(imageUrl)}" alt="${escapeAttr(reward.name || "ของรางวัล")}" loading="lazy">`;
+    }
+
     function renderRewards() {
       const customer = currentCustomer();
       const activeRewards = state.rewards.filter(reward => reward.active !== false);
       const html = activeRewards.map(reward => `
         <div class="item">
+          ${rewardImageMarkup(reward)}
           <div class="item-row">
             <div>
               <strong>${escapeHtml(reward.name)}</strong>
@@ -1534,20 +1562,26 @@
         .sort((a, b) => Number(a.points) - Number(b.points))
         .map(reward => `
           <div class="item">
+            ${rewardImageMarkup(reward)}
             <div class="item-row">
               <div>
                 <strong>${escapeHtml(reward.name)}</strong>
                 <small>ใช้ ${money(reward.points)} แต้ม${reward.stock ? ` · คงเหลือ ${escapeHtml(reward.stock)}` : ""}</small>
+                ${reward.imageUrl ? `<small>รูปภาพ: ${escapeHtml(reward.imageUrl)}</small>` : ""}
                 ${reward.description ? `<small>${escapeHtml(reward.description)}</small>` : ""}
               </div>
               <span class="pill ${reward.active === false ? "warn" : ""}">${reward.active === false ? "ปิด" : "เปิด"}</span>
             </div>
             <div class="actions">
+              <button class="btn" data-edit-reward-image="${reward.id}">ใส่/แก้รูป</button>
               <button class="btn" data-toggle-reward="${reward.id}">${reward.active === false ? "เปิดให้แลก" : "ปิดไว้ก่อน"}</button>
               <button class="btn danger" data-delete-reward="${reward.id}">ลบ</button>
             </div>
           </div>
         `).join("");
+      document.querySelectorAll("[data-edit-reward-image]").forEach(button => {
+        button.addEventListener("click", () => updateRewardImage(button.dataset.editRewardImage));
+      });
       document.querySelectorAll("[data-toggle-reward]").forEach(button => {
         button.addEventListener("click", () => toggleReward(button.dataset.toggleReward));
       });
@@ -1809,6 +1843,7 @@
         points: Number($("#rewardPoints").value),
         stock: $("#rewardStock").value.trim(),
         active: $("#rewardActive").value === "true",
+        imageUrl: $("#rewardImageUrl").value.trim(),
         description: $("#rewardDescription").value.trim(),
         createdAt: now()
       };
@@ -1818,6 +1853,19 @@
       event.currentTarget.reset();
       render();
       showToast("เพิ่มของรางวัลแล้ว");
+    }
+
+    async function updateRewardImage(id) {
+      const reward = state.rewards.find(item => item.id === id);
+      if (!reward) return;
+      const imageUrl = prompt("วางลิงก์รูปภาพของรางวัล", reward.imageUrl || "");
+      if (imageUrl === null) return;
+      reward.imageUrl = imageUrl.trim();
+      reward.updatedAt = now();
+      saveState();
+      await saveCloudDoc(cloudCollections.rewards, reward);
+      render();
+      showToast(reward.imageUrl ? "บันทึกรูปของรางวัลแล้ว" : "ลบรูปของรางวัลแล้ว");
     }
 
     async function toggleReward(id) {
