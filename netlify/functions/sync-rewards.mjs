@@ -76,16 +76,25 @@ function assertSecret(event) {
 }
 
 export async function handler(event) {
+  console.info("sync-rewards: handler started");
   if (event.httpMethod === "OPTIONS") return json(204, {});
   if (event.httpMethod !== "POST") return json(405, { ok: false, status: "method_not_allowed" });
   try {
     assertSecret(event);
+    console.info("sync-rewards: secret validated");
     const body = JSON.parse(event.body || "{}");
+    console.info("sync-rewards: Firebase read started");
     const existing = toArray((await firebaseRead("rewards")).value);
+    console.info("sync-rewards: Firebase read completed");
     const plan = buildRewardSyncPlan(body, existing);
-    if (Object.keys(plan.updates).length > 0) await firebaseRootPatch(plan.updates);
+    if (Object.keys(plan.updates).length > 0) {
+      console.info("sync-rewards: Firebase patch started");
+      await firebaseRootPatch(plan.updates);
+      console.info("sync-rewards: Firebase patch completed");
+    }
     return json(200, { ok: true, status: plan.unchanged === plan.rewards.length ? "unchanged" : "synced", mode: plan.mode, count: plan.rewards.length, unchanged: plan.unchanged });
   } catch (error) {
+    console.error("sync-rewards: error", { type: error?.name || "Error" });
     return json(error.statusCode || 500, { ok: false, status: "error", message: error.message });
   }
 }
