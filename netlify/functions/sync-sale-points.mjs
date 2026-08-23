@@ -64,6 +64,25 @@ async function pushEarnNotification(customer, transaction) {
   return response.ok ? { sent: true } : { sent: false, status: response.status };
 }
 
+async function pushReverseNotification(customer, { ref, points, totalPoints }) {
+  const token = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+  if (!token || !customer.lineUserId) {
+    return { sent: false, error: "missing-token-or-line-user-id" };
+  }
+  const text = [
+    `ยกเลิกคะแนนจากบิล ${ref} จำนวน ${points.toLocaleString("th-TH")} คะแนน`,
+    `คะแนนคงเหลือ ${totalPoints.toLocaleString("th-TH")} คะแนน`
+  ].join("\n");
+  const response = await fetch(LINE_PUSH_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ to: customer.lineUserId, messages: [{ type: "text", text }] })
+  });
+  return response.ok
+    ? { sent: true }
+    : { sent: false, error: `LINE Messaging API returned ${response.status}` };
+}
+
 async function loadState() {
   const [customersRaw, transactionsRaw] = await Promise.all([firebaseRead("customers"), firebaseRead("transactions")]);
   return { customers: toArray(customersRaw.value), transactions: toArray(transactionsRaw.value) };
@@ -136,7 +155,8 @@ async function reverseSale(body) {
     if (!customer) throw Object.assign(new Error("customer not found"), { statusCode: 404, publicStatus: "customer_not_found" });
     const reversalId = body.transactionId || `reverse-${randomUUID()}`;
     const now = new Date().toISOString();
-    const updatedPoints = Number(customer.points || 0) - Number(original.points || 0);
+    const reversedPoints = Number(original.points || 0);
+    const updatedPoints = Number(customer.points || 0) - reversedPoints;
     const customerKey = customer.firebaseKey || customer.id;
     await firebaseRootPatch({
       [`customers/${customerKey}/points`]: updatedPoints,
@@ -144,10 +164,39 @@ async function reverseSale(body) {
       [`transactions/${original.firebaseKey || original.id}/status`]: "reversed",
       [`transactions/${original.firebaseKey || original.id}/reversedAt`]: now,
       [`transactions/${original.firebaseKey || original.id}/reversalTransactionId`]: reversalId,
-      [`transactions/${reversalId}`]: { id: reversalId, customerId: customer.id, type: "sale_reversal", status: "confirmed", points: Number(original.points || 0), amount: Number(original.amount || 0), ref, originalTransactionId: original.id, date: now, operator: body.operator || "google-sheet" }
+      [`transactions/${reversalId}`]: { id: reversalId, customerId: customer.id, type: "sale_reversal", status: "confirmed", points: reversedPoints, amount: Number(original.amount || 0), ref, originalTransactionId: original.id, date: now, operator: body.operator || "google-sheet" }
     });
     await finishOperation(claim.key, { status: "completed", transactionId: reversalId });
-    return json(200, { ok: true, status: "reversed", points: Number(original.points || 0), totalPoints: updatedPoints, transactionId: reversalId, originalTransactionId: original.id });
+
+    let notificationSent = false;
+    let notificationError = "";
+    try {
+      const notification = await pushReverseNotification(customer, { ref, points: reversedPoints, totalPoints: updatedPoints });
+      notificationSent = notification.sent === true;
+      notificationError = notificationSent ? "" : (notification.error || "LINE notification was not sent");
+    } catch (error) {
+      notificationError = error?.message || String(error);
+    }
+
+    try {
+      await firebaseRootPatch({
+        [`transactions/${reversalId}/notificationSent`]: notificationSent,
+        [`transactions/${reversalId}/notificationError`]: notificationError || null
+      });
+    } catch (error) {
+      notificationError = notificationError || `notification metadata write failed: ${error?.message || String(error)}`;
+    }
+
+    return json(200, {
+      ok: true,
+      status: "reversed",
+      points: reversedPoints,
+      totalPoints: updatedPoints,
+      transactionId: reversalId,
+      originalTransactionId: original.id,
+      notificationSent,
+      ...(notificationError ? { notificationError } : {})
+    });
   } catch (error) {
     await finishOperation(claim.key, { status: "failed", error: error.message });
     throw error;
