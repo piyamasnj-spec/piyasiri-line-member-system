@@ -3,24 +3,25 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>LINE OA Member System</title>
+  <title>สมาชิกปิยสิริเคมีเกษตร</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     :root {
-      --green: #06c755;
-      --deep: #12322b;
+      --green: #167529;
+      --deep: #104f1d;
       --ink: #16211d;
       --muted: #66746e;
       --line: #dce5df;
       --bg: #f5f7f3;
       --card: #ffffff;
-      --accent: #d57445;
+      --accent: #f5a000;
       --danger: #b42318;
       --warn: #fff2d7;
       font-family: Arial, "Noto Sans Thai", Tahoma, sans-serif;
     }
 
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
 
     body {
       margin: 0;
@@ -331,11 +332,144 @@
 
     .reward-image {
       width: 100%;
-      aspect-ratio: 16 / 10;
+      aspect-ratio: 16 / 9;
       object-fit: cover;
       border-radius: 8px;
       border: 1px solid var(--line);
       background: #f1f5f2;
+    }
+
+    .image-placeholder {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border: 1px dashed #bfd0c3;
+      border-radius: 10px;
+      background: linear-gradient(145deg, #f6f9f5, #eef4ef);
+      color: var(--muted);
+      display: grid;
+      place-items: center;
+      padding: 14px;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .image-placeholder svg {
+      width: 24px;
+      height: 24px;
+      margin-bottom: 6px;
+      color: #78917d;
+    }
+
+    .image-placeholder span { display: block; }
+
+    .store-brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 72px;
+      padding: 4px 16px;
+      background: white;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .logo-crop {
+      position: relative;
+      flex: 0 0 68px;
+      width: 68px;
+      height: 64px;
+      overflow: hidden;
+    }
+
+    .store-logo {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      display: block;
+      width: 200px;
+      height: auto;
+      max-width: none;
+      transform: translate(-50%, -50%);
+    }
+
+    .store-name-fallback {
+      min-height: 72px;
+      display: grid;
+      place-items: center;
+      color: var(--deep);
+      font-size: 20px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .store-title {
+      margin: 0;
+      color: var(--deep);
+      font-size: 16px;
+      line-height: 1.3;
+    }
+
+    .home-actions {
+      display: grid;
+      gap: 10px;
+    }
+
+    .home-actions .btn {
+      min-height: 54px;
+      width: 100%;
+      justify-content: flex-start;
+      padding-inline: 14px;
+      font-weight: 700;
+      border-radius: 12px;
+      border-color: #e1e8e2;
+      box-shadow: 0 3px 12px rgba(16, 79, 29, 0.045);
+    }
+
+    .home-actions .btn::after { content: "›"; margin-left: auto; font-size: 22px; color: #75917b; }
+
+    .menu-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      display: grid;
+      place-items: center;
+      background: #edf5ee;
+      color: var(--green);
+    }
+
+    .menu-icon svg { width: 18px; height: 18px; }
+
+    .points-balance { display: flex; align-items: baseline; gap: 8px; }
+    .points-unit { font-size: 16px; font-weight: 700; color: #41634a; }
+
+    .member-status {
+      flex: 0 0 auto;
+      margin: 2px 2px 0 0;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #fff5dc;
+      color: #735400;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    .customer-note {
+      margin: 0;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.55;
+      padding: 2px 12px 8px;
+    }
+
+    .state-message {
+      min-height: 96px;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+      text-align: center;
+      color: var(--muted);
     }
 
     .actions {
@@ -373,13 +507,15 @@
 
     .member-card {
       background:
-        radial-gradient(circle at top right, rgba(6, 199, 85, 0.18), transparent 34%),
-        linear-gradient(135deg, #ffffff 0%, #f8fff9 100%);
-      border: 1px solid #cfe5d8;
-      border-radius: 8px;
-      padding: 16px;
+        radial-gradient(circle at 92% 8%, rgba(245, 160, 0, 0.12), transparent 28%),
+        linear-gradient(145deg, #ffffff 0%, #f4faf4 100%);
+      border: 1px solid #cfe1d2;
+      border-left: 4px solid var(--green);
+      border-radius: 16px;
+      padding: 18px;
       display: grid;
-      gap: 12px;
+      gap: 14px;
+      box-shadow: 0 10px 28px rgba(16, 79, 29, 0.09);
     }
 
     .member-card .member-top {
@@ -418,11 +554,81 @@
     }
 
     .points {
-      font-size: 42px;
-      line-height: 1;
-      font-weight: 800;
+      font-size: 52px;
+      line-height: .9;
+      font-weight: 850;
       color: var(--deep);
+      letter-spacing: -1.5px;
     }
+
+    .signup-card {
+      background: white;
+      border: 1px solid #e0e8e1;
+      border-radius: 14px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 4px 16px rgba(18, 50, 43, 0.04);
+    }
+
+    .signup-card strong { font-size: 15px; }
+    .signup-card > div { display: grid; gap: 3px; }
+    .signup-card small { color: var(--muted); line-height: 1.4; }
+    .signup-card .btn { width: auto; min-height: 42px; }
+
+    .customer-page-head {
+      min-height: 48px;
+      padding: 4px;
+      display: grid;
+      grid-template-columns: 40px 1fr 40px;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .customer-page-head h2 {
+      margin: 0;
+      text-align: center;
+      color: var(--deep);
+      font-size: 20px;
+    }
+
+    .back-button {
+      width: 40px !important;
+      min-height: 40px !important;
+      padding: 0 !important;
+      border-radius: 50% !important;
+      color: var(--deep);
+      font-size: 24px;
+    }
+
+    .reward-list { display: grid; gap: 16px; }
+
+    .reward-card {
+      overflow: hidden;
+      background: white;
+      border: 1px solid #dde6df;
+      border-radius: 14px;
+      box-shadow: 0 5px 18px rgba(18, 50, 43, 0.055);
+    }
+
+    .reward-card .reward-image,
+    .reward-card .image-placeholder {
+      border: 0;
+      border-bottom: 1px solid #e4ebe5;
+      border-radius: 0;
+    }
+
+    .reward-content { padding: 10px 12px 11px; display: grid; gap: 6px; }
+    .reward-copy { display: grid; gap: 4px; }
+    .reward-name { margin: 0; font-size: 17px; line-height: 1.35; }
+    .reward-points { color: var(--green); font-size: 14px; font-weight: 800; }
+    .reward-description { color: var(--muted); font-size: 12px; line-height: 1.35; }
+    .reward-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .reward-shortfall { color: var(--muted); font-size: 12px; }
+    .reward-action { width: auto !important; min-width: 96px; min-height: 38px !important; padding-inline: 14px !important; }
+    .reward-action:disabled { background: #f2f4f2; border-color: #e0e5e1; color: #778078; opacity: 1; cursor: not-allowed; }
 
     .quick {
       display: grid;
@@ -601,7 +807,7 @@
 
     body.member-mode main {
       padding: 0;
-      background: #eef5f0;
+      background: #f4f7f2;
     }
 
     body.member-mode .phone {
@@ -612,7 +818,7 @@
       border-radius: 0;
       box-shadow: none;
       margin: 0;
-      background: #eef5f0;
+      background: #f4f7f2;
     }
 
     body.member-mode .phone-head {
@@ -622,13 +828,14 @@
     body.member-mode .phone-body {
       padding: 12px;
       width: 100%;
-      max-width: none;
+      max-width: 520px;
+      margin: 0 auto;
     }
 
     body.member-mode .member-card,
     body.member-mode .card {
       width: 100%;
-      border-radius: 8px;
+      border-radius: 14px;
     }
 
     body.member-mode .quick {
@@ -734,7 +941,7 @@
       body.member-mode .quick { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .mini-stats { grid-template-columns: 1fr; }
       nav { grid-template-columns: 1fr; }
-      .points { font-size: 36px; }
+      .points { font-size: 46px; }
       main { padding: 12px; }
       body.admin-mode main { padding-bottom: 28px; }
       .stats { grid-template-columns: 1fr 1fr; }
@@ -754,16 +961,141 @@
         align-self: flex-start;
       }
     }
+
+    /* Customer application shell */
+    body.member-mode main { background: #f3f5f2; }
+    body.member-mode .phone { background: #f3f5f2; display: flex; flex-direction: column; }
+    body.member-mode .phone-body { flex: 1; padding: 14px 12px 92px; gap: 16px; }
+    body.member-mode .customer-screen.active { gap: 16px; align-content: start; grid-auto-rows: max-content; }
+    body.member-mode .list { align-content: start; }
+
+    body.member-mode .store-brand {
+      min-height: 88px;
+      justify-content: flex-start;
+      padding: 10px 18px;
+      color: white;
+      background: #075b38;
+      border: 0;
+    }
+
+    body.member-mode .logo-crop { width: 58px; height: 58px; flex-basis: 58px; border-radius: 50%; background: white; }
+    body.member-mode .store-logo { width: 178px; }
+    body.member-mode .store-title { color: white; font-size: 19px; }
+    .store-subtitle { margin: 2px 0 0; color: rgba(255,255,255,.78); font-size: 12px; }
+
+    .digital-card {
+      overflow: hidden;
+      position: relative;
+      padding: 18px;
+      border-radius: 18px;
+      color: white;
+      background: #0b6a3b;
+      border: 1px solid rgba(255,255,255,.18);
+      box-shadow: 0 12px 26px rgba(7,91,56,.2);
+    }
+
+    .digital-card::after {
+      content: "";
+      position: absolute;
+      width: 190px;
+      height: 190px;
+      right: -65px;
+      top: -85px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.07);
+    }
+
+    .digital-card-head { position: relative; z-index: 1; display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+    .digital-card-name { display: grid; gap: 5px; }
+    .digital-card-name strong { font-size: 20px; line-height: 1.3; }
+    .digital-card-meta { color: rgba(255,255,255,.8); font-size: 12px; }
+    .digital-card .member-status { margin: 0; color: #075b38; background: #dff4df; }
+    .digital-score { position: relative; z-index: 1; margin-top: 18px; padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.23); }
+    .digital-score-label { display: block; color: rgba(255,255,255,.78); font-size: 12px; margin-bottom: 6px; }
+    .digital-score-row { display: flex; align-items: baseline; gap: 8px; }
+    .digital-score strong { font-size: 48px; line-height: .95; letter-spacing: -1.5px; }
+    .digital-score span { font-size: 15px; font-weight: 700; }
+    .digital-card-note { position: relative; z-index: 1; margin: 14px 0 0; color: rgba(255,255,255,.8); font-size: 12px; line-height: 1.45; }
+
+    .summary-strip { display: grid; grid-template-columns: 1fr 1fr; background: white; border: 1px solid #e0e7e1; border-radius: 14px; box-shadow: 0 5px 15px rgba(18,50,43,.055); }
+    .summary-item { min-width: 0; padding: 13px; display: flex; align-items: center; gap: 10px; }
+    .summary-item + .summary-item { border-left: 1px solid #e5ebe6; }
+    .summary-icon { width: 34px; height: 34px; flex: 0 0 34px; display: grid; place-items: center; border-radius: 10px; color: #087443; background: #edf6ef; }
+    .summary-icon svg { width: 19px; height: 19px; }
+    .summary-copy { min-width: 0; display: grid; gap: 2px; }
+    .summary-copy small { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .summary-copy strong { font-size: 14px; }
+
+    .app-section { display: grid; gap: 10px; }
+    .app-section-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .app-section-head h2 { margin: 0; font-size: 18px; color: #173820; }
+    .app-section-head button { border: 0; background: transparent; color: #64806b; font-size: 12px; cursor: pointer; }
+
+    .main-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .main-grid .menu-tile { min-height: 112px; border: 1px solid #e0e7e1; border-radius: 14px; background: white; color: var(--ink); box-shadow: 0 5px 16px rgba(18,50,43,.05); display: grid; justify-items: start; align-content: center; gap: 7px; padding: 14px; text-align: left; cursor: pointer; }
+    .main-grid .menu-tile strong { font-size: 15px; }
+    .main-grid .menu-tile small { color: var(--muted); font-size: 11px; }
+    .main-grid .menu-icon { width: 38px; height: 38px; border-radius: 50%; color: white; background: #087443; }
+    .main-grid .menu-icon svg { width: 21px; height: 21px; }
+
+    .promotion-banner { overflow: hidden; position: relative; min-height: 132px; border-radius: 16px; background: #e7f3e9; border: 1px solid #d5e7d8; }
+    .promotion-banner-copy { position: relative; z-index: 1; width: 62%; padding: 20px; display: grid; gap: 7px; }
+    .promotion-banner-copy strong { color: #0c5431; font-size: 19px; line-height: 1.3; }
+    .promotion-banner-copy small { color: #587060; line-height: 1.45; }
+    .promotion-banner-copy .btn { width: max-content; min-height: 38px; padding-inline: 14px; border: 0; background: #087443; color: white; }
+    .promotion-visual { position: absolute; right: 0; top: 0; width: 40%; height: 100%; display: grid; place-items: center; color: #6d9778; background: rgba(255,255,255,.32); }
+    .promotion-visual img { width: 100%; height: 100%; object-fit: cover; }
+    .promotion-visual svg { width: 48px; height: 48px; }
+
+    .recent-list { display: grid; gap: 9px; }
+    .recent-row { padding: 13px; border: 1px solid #e1e7e2; border-radius: 13px; background: white; display: flex; justify-content: space-between; gap: 12px; box-shadow: 0 3px 12px rgba(18,50,43,.035); }
+    .recent-row-copy { display: grid; gap: 4px; }
+    .recent-row-copy strong { font-size: 14px; }
+    .recent-row-copy small { color: var(--muted); font-size: 11px; line-height: 1.4; }
+    .recent-points { flex: 0 0 auto; font-size: 14px; font-weight: 800; color: #0a914c; }
+    .recent-points.negative { color: #c24132; }
+
+    .bottom-nav { position: fixed; left: 50%; bottom: 0; z-index: 20; width: min(520px, 100%); transform: translateX(-50%); display: grid; grid-template-columns: repeat(4,1fr); min-height: 68px; padding: 7px 6px max(7px, env(safe-area-inset-bottom)); background: rgba(255,255,255,.97); border-top: 1px solid #dfe6e0; box-shadow: 0 -6px 18px rgba(18,50,43,.06); }
+    .bottom-nav button { border: 0; background: transparent; color: #748078; display: grid; justify-items: center; align-content: center; gap: 3px; font-size: 10px; cursor: pointer; }
+    .bottom-nav button svg { width: 21px; height: 21px; }
+    .bottom-nav button.active { color: #087443; font-weight: 800; }
+
+    .page-score-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 16px; border-radius: 14px; color: #0b5d36; background: #e9f5ec; border: 1px solid #d5e7da; }
+    .page-score-card small { display: block; color: #64766a; margin-bottom: 3px; }
+    .page-score-card strong { font-size: 34px; line-height: 1; }
+    .reward-categories { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+    .reward-categories span { flex: 0 0 auto; padding: 8px 13px; border-radius: 999px; background: white; border: 1px solid #dfe6e0; color: #536259; font-size: 12px; }
+    .reward-categories span.active { background: #087443; border-color: #087443; color: white; }
+    .reward-conditions { padding: 15px; border-radius: 14px; background: #edf6ef; color: #46604e; font-size: 12px; line-height: 1.7; }
+    .reward-conditions strong { display: block; margin-bottom: 5px; color: #174a2a; font-size: 14px; }
+
+    .profile-card { padding: 18px; background: white; border: 1px solid #e0e7e1; border-radius: 16px; box-shadow: 0 5px 16px rgba(18,50,43,.045); display: grid; gap: 14px; }
+    .profile-avatar { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; color: white; background: #087443; font-size: 25px; font-weight: 800; }
+    .profile-title { display: flex; align-items: center; gap: 13px; }
+    .profile-title div { display: grid; gap: 3px; }
+    .profile-title strong { font-size: 18px; }
+    .profile-title small { color: var(--muted); }
+    .profile-field { display: grid; gap: 4px; padding-top: 12px; border-top: 1px solid #e7ece8; }
+    .profile-field span { color: var(--muted); font-size: 11px; }
+    .profile-field strong { font-size: 14px; }
+
+    @media (max-width: 340px) {
+      body.member-mode .store-brand { padding-inline: 13px; }
+      .digital-card { padding: 15px; }
+      .main-grid .menu-tile { min-height: 104px; padding: 12px; }
+      .promotion-banner-copy { width: 70%; padding: 16px; }
+      .promotion-visual { width: 33%; }
+    }
   </style>
 </head>
 <body class="member-mode">
   <div class="shell">
     <aside>
       <div class="brand">
-        <div class="logo">LINE</div>
+        <div class="logo">PS</div>
         <div>
-          <h1>ระบบสมาชิก LINE OA</h1>
-          <p>LIFF + หลังบ้านร้าน</p>
+          <h1>ปิยสิริเคมีเกษตร</h1>
+          <p>ระบบสมาชิก LINE</p>
         </div>
       </div>
       <nav>
@@ -778,27 +1110,20 @@
         <div class="top">
           <div>
             <h2>หน้าลูกค้าใน LINE</h2>
-            <p>จำลองหน้า LIFF ที่ลูกค้ากดจาก Rich Menu เพื่อสมัคร เช็คแต้ม เพิ่มแต้ม แลกของ และดูประวัติ</p>
+            <p>หน้าสมาชิกสำหรับดูคะแนน ของรางวัล และประวัติผ่าน LINE</p>
           </div>
           <a class="btn" href="#admin">ไปหลังบ้าน</a>
         </div>
 
         <div class="phone">
-          <div class="phone-head">
-            <strong>ปิยสิริเคมีเกษตร</strong>
-            <span>LINE OA</span>
+          <div class="store-brand" id="storeBrand">
+            <div class="logo-crop"><img class="store-logo" data-store-logo alt="โลโก้ปิยสิริเคมีเกษตร" data-fallback="storeNameFallback"></div>
+            <div class="store-name-fallback" id="storeNameFallback" hidden>ปิยสิริเคมีเกษตร</div>
+            <div><h1 class="store-title">ปิยสิริเคมีเกษตร</h1><p class="store-subtitle">LINE OA Member System</p></div>
           </div>
           <div class="phone-body">
             <section class="customer-screen active" id="screenHome">
-              <div class="member-card" id="memberSummary"></div>
-              <div class="quick">
-                <button data-screen="screenRegister" data-icon="+">สมัครสมาชิก</button>
-                <button data-screen="screenPoints" data-icon="P">เช็คแต้ม</button>
-                <button data-screen="screenSubmit" data-icon="฿">เพิ่มแต้ม</button>
-                <button data-screen="screenRedeem" data-icon="↔">แลกของ</button>
-                <button data-screen="screenHistory" data-icon="H">ประวัติแลกของ</button>
-                <button data-screen="screenRewards" data-icon="★">ของรางวัล</button>
-              </div>
+              <div id="memberSummary"><div class="state-message">กำลังโหลดข้อมูลสมาชิก...</div></div>
               <div class="home-highlights" id="homeHighlights"></div>
             </section>
 
@@ -824,22 +1149,6 @@
               </div>
             </section>
 
-            <section class="customer-screen" id="screenSubmit">
-              <div class="card">
-                <div class="card-head"><h3>ส่งยอดซื้อเพื่อเพิ่มแต้ม</h3><button class="btn" data-screen="screenHome">กลับ</button></div>
-                <div class="card-body">
-                  <form class="form" id="submitPurchaseForm">
-                    <div class="field"><label for="purchaseAmount">ยอดซื้อตามบิล</label><input id="purchaseAmount" required type="number" min="1" placeholder="บาท"></div>
-                    <div class="field"><label for="purchaseRef">เลขบิล/เลขคำสั่งซื้อ</label><input id="purchaseRef" required placeholder="เช่น INV-001"></div>
-                    <div class="field full"><label for="purchaseProof">หลักฐานการซื้อ</label><input id="purchaseProof" required placeholder="เลขใบเสร็จ หรือพิมพ์ว่า ส่งสลิปในแชท LINE"></div>
-                    <div class="field full"><label for="purchaseNote">รายละเอียดเพิ่มเติม</label><textarea id="purchaseNote" placeholder="เช่น ซื้อสินค้าอะไร หรือแจ้งว่ารูปสลิปส่งไว้ในแชท"></textarea></div>
-                    <div class="notice full">แต้มจะยังไม่เข้าทันที ร้านจะตรวจเลขบิล/หลักฐานก่อนอนุมัติ หากยอดไม่ตรง ร้านสามารถปฏิเสธรายการได้</div>
-                    <div class="field full"><button class="btn primary" type="submit">ส่งให้ร้านอนุมัติ</button></div>
-                  </form>
-                </div>
-              </div>
-            </section>
-
             <section class="customer-screen" id="screenRedeem">
               <div class="card">
                 <div class="card-head"><h3>แลกของ</h3><button class="btn" data-screen="screenHome">กลับ</button></div>
@@ -848,24 +1157,53 @@
             </section>
 
             <section class="customer-screen" id="screenRewards">
-              <div class="card">
-                <div class="card-head"><h3>ของรางวัล</h3><button class="btn" data-screen="screenHome">กลับ</button></div>
-                <div class="card-body" id="rewardCatalog"></div>
-              </div>
+              <div class="customer-page-head"><button class="btn back-button" data-screen="screenHome" aria-label="กลับ">‹</button><h2>ของรางวัล</h2><span></span></div>
+              <div class="page-score-card" id="rewardScoreSummary"></div>
+              <div class="reward-categories"><span class="active">ทั้งหมด</span><span>สินค้าทางร้าน</span><span>ของใช้</span><span>อื่น ๆ</span></div>
+              <div class="reward-list" id="rewardCatalog"></div>
+              <div class="reward-conditions"><strong>เงื่อนไขการแลกของรางวัล</strong>✓ 1 สิทธิ์ต่อ 1 สมาชิก<br>✓ ของรางวัลมีจำนวนจำกัด<br>✓ กรุณาติดต่อร้านเพื่อรับของรางวัล</div>
             </section>
 
             <section class="customer-screen" id="screenHistory">
-              <div class="card">
-                <div class="card-head"><h3>ประวัติ</h3><button class="btn" data-screen="screenHome">กลับ</button></div>
-                <div class="card-body"><div class="list" id="customerHistory"></div></div>
-              </div>
+              <div class="customer-page-head"><button class="btn back-button" data-screen="screenHome" aria-label="กลับ">‹</button><h2>ประวัติคะแนน</h2><span></span></div>
+              <div class="list" id="customerHistory"></div>
+            </section>
+
+            <section class="customer-screen" id="screenRedemptionHistory">
+              <div class="customer-page-head"><button class="btn back-button" data-screen="screenHome" aria-label="กลับ">‹</button><h2>ประวัติแลกของรางวัล</h2><span></span></div>
+              <div class="list" id="customerRedemptionHistory"></div>
+            </section>
+
+            <section class="customer-screen" id="screenPromotions">
+              <div class="customer-page-head"><button class="btn back-button" data-screen="screenHome" aria-label="กลับ">‹</button><h2>โปรโมชั่น</h2><span></span></div>
+              <div id="promotionPage"></div>
+            </section>
+
+            <section class="customer-screen" id="screenProfile">
+              <div class="customer-page-head"><span></span><h2>โปรไฟล์</h2><span></span></div>
+              <div id="profileContent"></div>
+            </section>
+
+            <section class="customer-screen" id="screenRouteError">
+              <div class="customer-page-head"><button class="btn back-button" data-screen="screenHome" aria-label="กลับ">‹</button><h2>ไม่พบหน้านี้</h2><span></span></div>
+              <div class="empty">ลิงก์ไม่ถูกต้อง กรุณากลับไปหน้าหลักแล้วลองอีกครั้ง</div>
             </section>
           </div>
+          <nav class="bottom-nav" aria-label="เมนูสมาชิก">
+            <button data-screen="screenHome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 11 9-8 9 8v10h-6v-7H9v7H3Z"/></svg><span>หน้าหลัก</span></button>
+            <button data-screen="screenRewards"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 7v14M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7Zm0 0h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7Z"/></svg><span>ของรางวัล</span></button>
+            <button data-screen="screenHistory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/></svg><span>ประวัติ</span></button>
+            <button data-screen="screenProfile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>โปรไฟล์</span></button>
+          </nav>
         </div>
       </section>
 
       <section class="view" id="adminView">
         <div class="card admin-lock" id="adminLock">
+          <div class="store-brand">
+            <div class="logo-crop"><img class="store-logo" data-store-logo alt="โลโก้ปิยสิริเคมีเกษตร" data-fallback="adminStoreNameFallback"></div>
+            <div class="store-name-fallback" id="adminStoreNameFallback" hidden>ปิยสิริเคมีเกษตร</div>
+          </div>
           <div class="card-head"><h3>เข้าสู่หลังบ้านร้าน</h3></div>
           <div class="card-body">
             <div class="notice">รหัสหลังบ้านคือ 2312 ควรเก็บไว้เฉพาะผู้ดูแลระบบ</div>
@@ -968,6 +1306,7 @@
   <div class="toast" id="toast"></div>
 
   <script type="module">
+    import { bottomNavTarget, hashForScreen, resolveCustomerRoute } from "./src/customer-routes.mjs";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
       get,
@@ -984,6 +1323,15 @@
     const POINT_RATE = 100;
     const NOTIFICATION_ENDPOINT = "/.netlify/functions/send-line-message";
     const MOCK_LINE_USER_ID = "U-demo-line-user";
+    const ASSET_CONFIG = Object.freeze({
+      storeLogo: "assets/images/piyasiri-logo.png",
+      rewardImageDirectory: "assets/rewards/"
+    });
+    const PROMOTION_CONFIG = Object.freeze({
+      imageUrl: "",
+      title: "",
+      description: ""
+    });
     const firebaseConfig = {
       apiKey: "AIzaSyC18-4OWR8kV8Rpjp5DwBZpADDxcy1NXDY",
       authDomain: "piyasiri-member-system.firebaseapp.com",
@@ -1002,8 +1350,8 @@
       redemptions: "redemptions",
       rewards: "rewards"
     };
-    let currentLineUserId = MOCK_LINE_USER_ID;
-    let currentLineDisplayName = "Demo User";
+    let currentLineUserId = null;
+    let currentLineDisplayName = "LINE User";
     let isLiffReady = false;
     let isCloudReady = false;
     const defaultRewards = [
@@ -1026,7 +1374,11 @@
       pointsDetail: $("#pointsDetail"),
       redeemList: $("#redeemList"),
       rewardCatalog: $("#rewardCatalog"),
+      rewardScoreSummary: $("#rewardScoreSummary"),
       customerHistory: $("#customerHistory"),
+      customerRedemptionHistory: $("#customerRedemptionHistory"),
+      promotionPage: $("#promotionPage"),
+      profileContent: $("#profileContent"),
       pendingList: $("#pendingList"),
       customerList: $("#customerList"),
       expiryList: $("#expiryList"),
@@ -1053,6 +1405,33 @@
       return { customers: [], transactions: [], pendingPurchases: [], redemptions: [], rewards: [] };
     }
 
+    function isLocalPreview() {
+      return ["localhost", "127.0.0.1"].includes(location.hostname);
+    }
+
+    function createLocalPreviewState() {
+      const memberPreview = new URLSearchParams(location.search).get("preview") === "member";
+      const customerId = "preview-member";
+      const rewards = [
+        { id: "preview-reward-1", name: "คูปองส่วนลด 100 บาท", points: 100, active: true, stock: "พร้อมแลก", imageUrl: "", description: "ใช้เป็นส่วนลดสำหรับสินค้าที่ร่วมรายการ" },
+        { id: "preview-reward-2", name: "หมวกปิยสิริ", points: 300, active: true, stock: "5 ชิ้น", imageUrl: "", description: "รับของรางวัลได้ที่หน้าร้าน" }
+      ];
+      if (!memberPreview) return { customers: [], transactions: [], pendingPurchases: [], redemptions: [], rewards };
+      return {
+        customers: [{ id: customerId, lineUserId: MOCK_LINE_USER_ID, code: "MB-0245", name: "คุณมินตรา", phone: "0812345678", area: "อ.ปากช่อง", points: 245, totalSpend: 30000, joinedAt: "2026-01-12T09:00:00.000Z" }],
+        transactions: [
+          { id: "preview-tx-1", customerId, type: "earn", points: 300, amount: 30000, approvedAmount: 30000, ref: "PS-260812", note: "ซื้อสินค้าที่หน้าร้าน", date: "2026-08-12T10:15:00.000Z", expiresAt: "2027-08-12T10:15:00.000Z" },
+          { id: "preview-tx-2", customerId, type: "redeem", points: 55, amount: 0, note: "แลกของรางวัล", date: "2026-08-18T04:30:00.000Z" }
+        ],
+        pendingPurchases: [],
+        redemptions: [
+          { id: "preview-redemption-1", customerId, rewardId: "preview-reward-old", rewardName: "ถุงผ้าปิยสิริ", points: 55, date: "2026-08-18T04:30:00.000Z", status: "fulfilled" },
+          { id: "preview-redemption-2", customerId, rewardId: "preview-reward-2", rewardName: "หมวกปิยสิริ", points: 300, date: "2026-08-21T07:45:00.000Z", status: "requested" }
+        ],
+        rewards
+      };
+    }
+
     function saveState() {
       localStorage.setItem(STORE_KEY, JSON.stringify(state));
     }
@@ -1072,9 +1451,10 @@
         isCloudReady = true;
         return true;
       } catch (error) {
+        state = { customers: [], transactions: [], pendingPurchases: [], redemptions: [], rewards: [] };
         isCloudReady = false;
-        console.warn("Realtime Database load failed; using local data", error);
-        showToast("ยังเชื่อมฐานข้อมูลไม่ได้ ใช้ข้อมูลในเครื่องชั่วคราว");
+        console.warn("Realtime Database load failed", error);
+        showToast("โหลดข้อมูลสมาชิกไม่สำเร็จ กรุณาลองใหม่");
         return false;
       }
     }
@@ -1223,6 +1603,12 @@
     }
 
     async function initLineIdentity({ skipLogin = false } = {}) {
+      if (isLocalPreview()) {
+        currentLineUserId = MOCK_LINE_USER_ID;
+        currentLineDisplayName = "Demo User";
+        isLiffReady = false;
+        return;
+      }
       if (!window.liff) {
         isLiffReady = false;
         return;
@@ -1242,8 +1628,9 @@
         currentLineUserId = profile.userId;
         currentLineDisplayName = profile.displayName || "LINE User";
       } catch (error) {
+        currentLineUserId = null;
         isLiffReady = false;
-        console.warn("LIFF init failed; using demo mode", error);
+        console.warn("LIFF init failed", error);
       }
     }
 
@@ -1289,22 +1676,15 @@
       const screenParam = params.get("screen") || stateParams.get("screen");
       const isAdmin = hash.startsWith("#admin");
       const adminAuthenticated = isAdminAuthenticated();
-      const screenByHash = {
-        "#member": "screenHome",
-        "#register": "screenRegister",
-        "#points": "screenPoints",
-        "#submit": "screenSubmit",
-        "#redeem": "screenRedeem",
-        "#history": "screenHistory",
-        "#rewards": "screenRewards"
-      };
       const screenByParam = {
         home: "screenHome",
         register: "screenRegister",
         points: "screenPoints",
-        submit: "screenSubmit",
         redeem: "screenRedeem",
         history: "screenHistory",
+        redemptionHistory: "screenRedemptionHistory",
+        promotions: "screenPromotions",
+        profile: "screenProfile",
         rewards: "screenRewards"
       };
       els.memberView.classList.toggle("active", !isAdmin);
@@ -1318,159 +1698,149 @@
         els.adminPasscode?.focus();
         return;
       }
-      if (!isAdmin) showScreen(screenByParam[screenParam] || screenByHash[hash] || "screenHome", false);
+      if (!isAdmin) {
+        const paramScreen = screenByParam[screenParam];
+        const requestedHash = paramScreen ? hashForScreen(paramScreen) : hash;
+        const customerRoute = resolveCustomerRoute(requestedHash);
+        showScreen(customerRoute.screenId, false);
+      }
       render();
     }
 
     function showScreen(id, shouldRender = true) {
       document.querySelectorAll(".customer-screen").forEach(screen => screen.classList.remove("active"));
       $("#" + id).classList.add("active");
+      const navTarget = bottomNavTarget(id);
+      document.querySelectorAll(".bottom-nav [data-screen]").forEach(button => button.classList.toggle("active", button.dataset.screen === navTarget));
       if (shouldRender) renderCustomer();
     }
 
     function renderCustomer() {
       const customer = currentCustomer();
+      const menuGrid = `
+        <section class="app-section">
+          <div class="app-section-head"><h2>เมนูหลัก</h2></div>
+          <div class="main-grid">
+            <button class="menu-tile" data-screen="screenHistory"><span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 16V8h4a3 3 0 0 1 0 6H9"/></svg></span><strong>คะแนนของฉัน</strong><small>ดูคะแนนและประวัติ</small></button>
+            <button class="menu-tile" data-screen="screenRewards"><span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 7v14M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7Zm0 0h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7Z"/></svg></span><strong>ของรางวัล</strong><small>เลือกแลกสิทธิพิเศษ</small></button>
+            <button class="menu-tile" data-screen="screenPromotions"><span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 13 13 20 4 11V4h7Z"/><circle cx="8.5" cy="8.5" r="1.5"/></svg></span><strong>โปรโมชั่น</strong><small>โปรโมชั่นและสิทธิพิเศษ</small></button>
+            <button class="menu-tile" data-screen="screenRedemptionHistory"><span class="menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16v13H4zM2 4h20v4H2zM12 4v16"/></svg></span><strong>ประวัติแลกของรางวัล</strong><small>ติดตามสถานะล่าสุด</small></button>
+          </div>
+        </section>`;
+      const promotionBanner = renderPromotionBanner();
       if (!customer) {
         els.memberSummary.innerHTML = `
-          <div class="member-top">
-            <div class="member-name">
-              <strong>ยินดีต้อนรับ</strong>
-              <span class="member-code">${isLiffReady ? `บัญชี LINE: ${escapeHtml(currentLineDisplayName)}` : "โหมดทดลองนอก LINE"}</span>
+          <div class="digital-card">
+            <div class="digital-card-head">
+              <div class="digital-card-name"><strong>ยินดีต้อนรับ</strong><span class="digital-card-meta">${isLiffReady ? `บัญชี LINE: ${escapeHtml(currentLineDisplayName)}` : "ยังไม่ได้สมัครสมาชิก"}</span></div>
+              <span class="member-status">ผู้เยี่ยมชม</span>
             </div>
-            <span class="pill warn">ยังไม่เป็นสมาชิก</span>
+            <div class="digital-score"><span class="digital-score-label">คะแนนสะสมพร้อมใช้</span><div class="digital-score-row"><strong>0</strong><span>คะแนน</span></div></div>
+            <p class="digital-card-note">สมัครสมาชิกเพื่อเริ่มสะสมคะแนนและแลกของรางวัล</p>
           </div>
-          <div class="points-label">แต้มสะสม</div>
-          <div class="points">0</div>
-          <div class="member-help">สมัครสมาชิกครั้งเดียวเพื่อเช็คแต้ม แจ้งยอดซื้อ และแลกของรางวัลผ่าน LINE OA ของร้าน</div>
         `;
         els.homeHighlights.innerHTML = `
-          <div class="soft-card">
-            <strong>เริ่มใช้งานสมาชิก</strong>
-            <small>กดสมัครสมาชิก แล้วกรอกชื่อและเบอร์โทร ระบบจะผูกกับบัญชี LINE นี้เพื่อสะสมแต้ม</small>
+          ${menuGrid}
+          ${promotionBanner}
+          <div class="signup-card">
+            <div><strong>เริ่มสะสมคะแนน</strong><small>สมัครด้วยชื่อและเบอร์โทร</small></div>
             <button class="btn primary" data-screen="screenRegister">สมัครสมาชิก</button>
           </div>
         `;
         els.pointsDetail.innerHTML = `<div class="empty">กรุณาสมัครสมาชิกก่อนเช็คแต้ม</div>`;
-        els.customerHistory.innerHTML = `<div class="empty">ยังไม่มีประวัติ</div>`;
+        els.customerHistory.innerHTML = `<div class="empty">กรุณาสมัครสมาชิกเพื่อดูประวัติคะแนน<br><button class="btn primary" data-screen="screenRegister">สมัครสมาชิก</button></div>`;
+        els.customerRedemptionHistory.innerHTML = `<div class="empty">กรุณาสมัครสมาชิกเพื่อดูประวัติแลกของรางวัล<br><button class="btn primary" data-screen="screenRegister">สมัครสมาชิก</button></div>`;
       } else {
-        const pendingCount = state.pendingPurchases.filter(item => item.customerId === customer.id).length;
         const pendingRedemptions = state.redemptions.filter(item => item.customerId === customer.id && isPendingRedemption(item)).length;
         els.memberSummary.innerHTML = `
-          <div class="member-top">
-            <div class="member-name">
-              <strong>${escapeHtml(customer.name)}</strong>
-              <span class="member-code">${escapeHtml(customer.code)} · ${escapeHtml(customer.phone)}</span>
+          <div class="digital-card">
+            <div class="digital-card-head">
+              <div class="digital-card-name"><strong>${escapeHtml(customer.name)}</strong><span class="digital-card-meta">${escapeHtml(customer.code)} · ${escapeHtml(maskPhone(customer.phone))}</span></div>
+              <span class="member-status">บัตรสมาชิก</span>
             </div>
-            <span class="pill">${money(customer.points)} แต้ม</span>
+            <div class="digital-score"><span class="digital-score-label">คะแนนสะสมพร้อมใช้</span><div class="digital-score-row"><strong>${money(customer.points)}</strong><span>คะแนน</span></div></div>
+            <p class="digital-card-note">คะแนนจะถูกบันทึกโดยร้านหลังการซื้อสินค้า</p>
           </div>
-          <div class="points-label">แต้มสะสมพร้อมใช้</div>
-          <div class="points">${money(customer.points)}</div>
-          <div class="mini-stats">
-            <div class="mini-stat"><span>รออนุมัติยอดซื้อ</span><strong>${money(pendingCount)}</strong></div>
-            <div class="mini-stat"><span>รอจัดการแลกของ</span><strong>${money(pendingRedemptions)}</strong></div>
-          </div>
-          <div class="member-help">ซื้อครบ 100 บาท = 1 แต้ม ยอดซื้อที่แจ้งจะเข้าแต้มหลังร้านตรวจและอนุมัติ</div>
         `;
         const nextExpiry = state.transactions
           .filter(item => item.customerId === customer.id && item.type === "earn")
           .sort((a, b) => new Date(a.expiresAt) - new Date(b.expiresAt))[0];
-        renderHomeHighlights(customer, nextExpiry);
+        renderHomeHighlights(customer, nextExpiry, pendingRedemptions, menuGrid, promotionBanner);
         els.pointsDetail.innerHTML = `
           <div class="points">${money(customer.points)}</div>
           <small>รหัสสมาชิก ${escapeHtml(customer.code)}</small>
-          <small>แต้มชุดถัดไปหมดอายุ: ${nextExpiry ? new Date(nextExpiry.expiresAt).toLocaleDateString("th-TH") : "-"}</small>
+          ${nextExpiry?.expiresAt ? `<small>แต้มชุดถัดไปหมดอายุ: ${new Date(nextExpiry.expiresAt).toLocaleDateString("th-TH")}</small>` : ""}
         `;
         renderCustomerHistory(customer);
+        renderCustomerRedemptionHistory(customer);
       }
+      renderProfile(customer);
+      renderPromotionPage();
       renderRewards();
     }
 
-    function renderHomeHighlights(customer, nextExpiry) {
-      const pendingPurchases = state.pendingPurchases
+    function renderHomeHighlights(customer, nextExpiry, pendingCount, menuGrid, promotionBanner) {
+      const recentTransactions = state.transactions
         .filter(item => item.customerId === customer.id)
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
-      const pendingRedemptions = state.redemptions
-        .filter(item => item.customerId === customer.id && isPendingRedemption(item))
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
-      const latestTransaction = state.transactions
-        .filter(item => item.customerId === customer.id)
-        .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-
-      const statusCards = [];
-      if (pendingPurchases[0]) {
-        const item = pendingPurchases[0];
-        statusCards.push(`
-          <div class="soft-card">
-            <div class="section-title"><h4>ยอดซื้อรออนุมัติ</h4><span class="pill warn">รอตรวจ</span></div>
-            <small>เลขบิล ${escapeHtml(item.ref || "-")} · ${money(item.amount)} บาท · คาดว่าจะได้ ${money(pointFromAmount(item.amount))} แต้ม</small>
-          </div>
-        `);
-      }
-      if (pendingRedemptions[0]) {
-        const item = pendingRedemptions[0];
-        statusCards.push(`
-          <div class="soft-card">
-            <div class="section-title"><h4>คำขอแลกของ</h4><span class="pill warn">รอดำเนินการ</span></div>
-            <small>${escapeHtml(item.rewardName || "-")} · ใช้ ${money(item.points)} แต้ม</small>
-          </div>
-        `);
-      }
-      if (!statusCards.length) {
-        statusCards.push(`
-          <div class="soft-card">
-            <div class="section-title"><h4>สถานะล่าสุด</h4><span class="pill">พร้อมใช้งาน</span></div>
-            <small>ยังไม่มีรายการรอร้านจัดการ สามารถแจ้งยอดซื้อหรือแลกของรางวัลได้เลย</small>
-          </div>
-        `);
-      }
+        .sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 3);
+      const recentRows = recentTransactions.map(item => {
+        const negative = item.type === "redeem";
+        const title = item.type === "earn" ? "ได้รับคะแนน" : item.type === "refund" ? "คืนคะแนน" : "แลกของรางวัล";
+        return `<div class="recent-row"><div class="recent-row-copy"><strong>${title}</strong><small>${new Date(item.date).toLocaleString("th-TH")}<br>${escapeHtml(item.note || "-")}</small></div><span class="recent-points ${negative ? "negative" : ""}">${negative ? "-" : "+"}${money(item.points)} คะแนน</span></div>`;
+      }).join("") || `<div class="empty">ยังไม่มีประวัติคะแนน</div>`;
 
       els.homeHighlights.innerHTML = `
-        <div class="section-title">
-          <h4>สรุปของฉัน</h4>
-          <span class="pill">หมดอายุถัดไป ${nextExpiry ? new Date(nextExpiry.expiresAt).toLocaleDateString("th-TH") : "-"}</span>
+        <div class="summary-strip">
+          ${nextExpiry?.expiresAt ? `<div class="summary-item"><span class="summary-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M12 4v16"/></svg></span><div class="summary-copy"><small>คะแนนหมดอายุ</small><strong>${new Date(nextExpiry.expiresAt).toLocaleDateString("th-TH")}</strong></div></div>` : ""}
+          <div class="summary-item"><span class="summary-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12v9H4v-9M2 7h20v5H2z"/></svg></span><div class="summary-copy"><small>รอจัดการแลกของ</small><strong>${money(pendingCount)} รายการ</strong></div></div>
         </div>
-        ${statusCards.join("")}
-        ${latestTransaction ? `
-          <div class="soft-card">
-            <strong>รายการล่าสุด</strong>
-            <small>${latestTransaction.type === "earn" ? "ได้รับแต้ม" : latestTransaction.type === "refund" ? "คืนแต้ม" : "ใช้แต้ม"} · ${new Date(latestTransaction.date).toLocaleString("th-TH")} · ${money(latestTransaction.points)} แต้ม</small>
-          </div>
-        ` : ""}
+        ${menuGrid}
+        ${promotionBanner}
+        <section class="app-section"><div class="app-section-head"><h2>ประวัติล่าสุด</h2><button data-screen="screenHistory">ดูทั้งหมด ›</button></div><div class="recent-list">${recentRows}</div></section>
       `;
     }
 
+    function maskPhone(phone) {
+      const value = String(phone || "");
+      if (value.length < 6) return value || "-";
+      return `${value.slice(0, 3)}-${value.slice(3, 6)}-${"*".repeat(Math.max(3, value.length - 6))}`;
+    }
+
+    function promotionVisualMarkup() {
+      if (PROMOTION_CONFIG.imageUrl) return `<img src="${escapeAttr(PROMOTION_CONFIG.imageUrl)}" alt="โปรโมชั่น" loading="lazy">`;
+      return `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 23h36l-3 28H17zM22 23c0-9 4-14 10-14s10 5 10 14"/><path d="M22 35h20M32 28v14"/></svg>`;
+    }
+
+    function renderPromotionBanner() {
+      if (!PROMOTION_CONFIG.title && !PROMOTION_CONFIG.description && !PROMOTION_CONFIG.imageUrl) return "";
+      return `<section class="promotion-banner"><div class="promotion-banner-copy"><strong>${escapeHtml(PROMOTION_CONFIG.title)}</strong><small>${escapeHtml(PROMOTION_CONFIG.description)}</small><button class="btn" data-screen="screenRewards">ดูของรางวัล</button></div><div class="promotion-visual">${promotionVisualMarkup()}</div></section>`;
+    }
+
+    function renderPromotionPage() {
+      const promotion = renderPromotionBanner();
+      els.promotionPage.innerHTML = promotion || `<div class="empty">ยังไม่มีโปรโมชั่นในขณะนี้</div>`;
+    }
+
+    function renderProfile(customer) {
+      if (!customer) {
+        els.profileContent.innerHTML = `<div class="profile-card"><div class="profile-title"><div class="profile-avatar">PS</div><div><strong>ยังไม่ได้สมัครสมาชิก</strong><small>สมัครเพื่อดูข้อมูลสมาชิกของคุณ</small></div></div><button class="btn primary" data-screen="screenRegister">สมัครสมาชิก</button></div>`;
+        return;
+      }
+      els.profileContent.innerHTML = `<div class="profile-card"><div class="profile-title"><div class="profile-avatar">${escapeHtml(customer.name.replace(/^คุณ/, "").slice(0, 1) || "ส")}</div><div><strong>${escapeHtml(customer.name)}</strong><small>${escapeHtml(customer.code)}</small></div></div>${customer.phone ? `<div class="profile-field"><span>เบอร์โทรศัพท์</span><strong>${escapeHtml(maskPhone(customer.phone))}</strong></div>` : ""}${customer.area ? `<div class="profile-field"><span>พื้นที่</span><strong>${escapeHtml(customer.area)}</strong></div>` : ""}${customer.joinedAt ? `<div class="profile-field"><span>วันที่สมัคร</span><strong>${new Date(customer.joinedAt).toLocaleDateString("th-TH")}</strong></div>` : ""}</div>`;
+    }
+
     function renderCustomerHistory(customer) {
-      const pendingItems = state.pendingPurchases
-        .filter(item => item.customerId === customer.id)
-        .map(item => ({ ...item, historyKind: "pending" }));
       const transactionItems = state.transactions
         .filter(item => item.customerId === customer.id)
         .map(item => ({ ...item, historyKind: "transaction" }));
-      const items = [...pendingItems, ...transactionItems]
+      const items = transactionItems
         .sort((a, b) => new Date(b.date) - new Date(a.date));
       if (!items.length) {
-        els.customerHistory.innerHTML = `<div class="empty">ยังไม่มีประวัติ</div>`;
+        els.customerHistory.innerHTML = `<div class="empty">ยังไม่มีประวัติคะแนน</div>`;
         return;
       }
       els.customerHistory.innerHTML = items.map(item => {
-        if (item.historyKind === "pending") {
-          const pendingPoints = pointFromAmount(item.amount);
-          return `
-            <div class="item">
-              <div class="item-row">
-                <div>
-                  <strong>รออนุมัติยอดซื้อ</strong>
-                  <small>วันที่ส่ง: ${new Date(item.date).toLocaleString("th-TH")}</small>
-                  <small>เลขบิล: ${escapeHtml(item.ref || "-")}</small>
-                  <small>ยอดที่แจ้ง: ${money(item.amount)} บาท · คาดว่าจะได้ ${money(pendingPoints)} แต้ม</small>
-                  <small>หลักฐาน: ${escapeHtml(item.proof || "-")}</small>
-                </div>
-                <span class="pill warn">รออนุมัติ</span>
-              </div>
-            </div>
-          `;
-        }
-        const title = item.type === "earn" ? "อนุมัติยอดซื้อแล้ว" : item.type === "refund" ? "คืนแต้ม" : "ใช้แต้ม";
+        const title = item.type === "earn" ? "ได้รับคะแนน" : item.type === "refund" ? "คืนคะแนน" : "ใช้คะแนน";
         const pointSign = item.type === "redeem" ? "-" : "+";
         return `
           <div class="item">
@@ -1480,7 +1850,6 @@
                 <small>วันที่ทำรายการ: ${new Date(item.date).toLocaleString("th-TH")}</small>
                 ${item.ref ? `<small>เลขบิล: ${escapeHtml(item.ref)}</small>` : ""}
                 ${item.type === "earn" ? `<small>ยอดอนุมัติจริง: ${money(item.approvedAmount || item.amount)} บาท</small>` : ""}
-                ${item.type === "earn" && item.requestedAmount && item.requestedAmount !== item.approvedAmount ? `<small>ยอดที่แจ้ง ${money(item.requestedAmount)} บาท · ร้านปรับเป็น ${money(item.approvedAmount)} บาท</small>` : ""}
                 <small>${escapeHtml(item.note || "-")}</small>
                 ${item.adminNote ? `<small>หมายเหตุร้าน: ${escapeHtml(item.adminNote)}</small>` : ""}
               </div>
@@ -1491,9 +1860,32 @@
       }).join("");
     }
 
+    function renderCustomerRedemptionHistory(customer) {
+      const items = state.redemptions
+        .filter(item => item.customerId === customer.id)
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+      if (!items.length) {
+        els.customerRedemptionHistory.innerHTML = `<div class="empty">ยังไม่มีประวัติแลกของรางวัล</div>`;
+        return;
+      }
+      const statusLabel = { requested: "รอดำเนินการ", approved: "สำเร็จ", fulfilled: "สำเร็จ", rejected: "ไม่สำเร็จ", cancelled: "ยกเลิก" };
+      els.customerRedemptionHistory.innerHTML = items.map(item => `
+        <div class="item">
+          <div class="item-row">
+            <div>
+              <strong>${escapeHtml(item.rewardName || "ของรางวัล")}</strong>
+              <small>${new Date(item.date).toLocaleString("th-TH")} · ใช้ ${money(item.points)} คะแนน</small>
+            </div>
+            <span class="pill ${isPendingRedemption(item) ? "warn" : ""}">${statusLabel[item.status] || "ดำเนินการแล้ว"}</span>
+          </div>
+        </div>
+      `).join("");
+    }
+
     function rewardImageUrl(reward) {
       const raw = String(reward?.imageUrl || "").trim();
       if (!raw) return "";
+      if (/^[a-z0-9][a-z0-9._-]*\.(png|jpe?g|webp)$/i.test(raw)) return `${ASSET_CONFIG.rewardImageDirectory}${raw}`;
       const driveFile = raw.match(/drive\.google\.com\/file\/d\/([^/]+)/);
       const driveId = raw.match(/[?&]id=([^&]+)/);
       const fileId = driveFile?.[1] || driveId?.[1];
@@ -1502,28 +1894,49 @@
       return "";
     }
 
+    function imageMarkup({ src, alt, className = "reward-image", placeholder = "ยังไม่มีรูปภาพ" }) {
+      if (!src) return `<div class="image-placeholder" role="img" aria-label="${escapeAttr(alt)}"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m4 17 5-4 4 3 3-2 4 3"/></svg><span>${escapeHtml(placeholder)}</span></span></div>`;
+      return `<img class="${escapeAttr(className)}" src="${escapeAttr(src)}" alt="${escapeAttr(alt)}" loading="lazy" data-image-fallback="${escapeAttr(placeholder)}">`;
+    }
+
     function rewardImageMarkup(reward) {
-      const imageUrl = rewardImageUrl(reward);
-      if (!imageUrl) return "";
-      return `<img class="reward-image" src="${escapeAttr(imageUrl)}" alt="${escapeAttr(reward.name || "ของรางวัล")}" loading="lazy">`;
+      return imageMarkup({
+        src: rewardImageUrl(reward),
+        alt: reward.name || "ของรางวัล",
+        placeholder: "รูปของรางวัลจะเพิ่มภายหลัง"
+      });
     }
 
     function renderRewards() {
       const customer = currentCustomer();
+      els.rewardScoreSummary.innerHTML = `<div><small>คะแนนของคุณ</small><strong>${money(customer?.points || 0)}</strong> คะแนน</div><div><small>สถานะ</small><strong style="font-size:14px">${customer ? "พร้อมแลก" : "กรุณาสมัครสมาชิก"}</strong></div>`;
+      if (!customer) {
+        const signup = `<div class="empty">สมัครสมาชิกเพื่อดูและแลกของรางวัล<br><button class="btn primary" data-screen="screenRegister">สมัครสมาชิก</button></div>`;
+        els.redeemList.innerHTML = signup;
+        els.rewardCatalog.innerHTML = signup;
+        return;
+      }
       const activeRewards = state.rewards.filter(reward => reward.active !== false);
-      const html = activeRewards.map(reward => `
-        <div class="item">
+      const html = activeRewards.map(reward => {
+        const canRedeem = Boolean(customer && customer.points >= reward.points);
+        const shortfall = customer ? Math.max(0, reward.points - customer.points) : 0;
+        return `
+        <article class="reward-card">
           ${rewardImageMarkup(reward)}
-          <div class="item-row">
-            <div>
-              <strong>${escapeHtml(reward.name)}</strong>
-              <small>ใช้ ${money(reward.points)} แต้ม${reward.stock ? ` · คงเหลือ ${escapeHtml(reward.stock)}` : ""}</small>
-              ${reward.description ? `<small>${escapeHtml(reward.description)}</small>` : ""}
+          <div class="reward-content">
+            <div class="reward-copy">
+              <h3 class="reward-name">${escapeHtml(reward.name)}</h3>
+              <span class="reward-points">${money(reward.points)} คะแนน${reward.stock ? ` · คงเหลือ ${escapeHtml(reward.stock)}` : ""}</span>
+              ${reward.description ? `<span class="reward-description">${escapeHtml(reward.description)}</span>` : ""}
             </div>
-            <button class="btn ${customer && customer.points >= reward.points ? "primary" : ""}" data-redeem="${reward.id}" ${!customer || customer.points < reward.points ? "disabled" : ""}>${customer && customer.points >= reward.points ? "แลก" : "แต้มไม่พอ"}</button>
+            <div class="reward-footer">
+              <span class="reward-shortfall">${!customer ? "สมัครสมาชิกเพื่อแลก" : shortfall ? `ขาดอีก ${money(shortfall)} คะแนน` : "คะแนนเพียงพอ"}</span>
+              <button class="btn reward-action ${canRedeem ? "primary" : ""}" data-redeem="${reward.id}" ${canRedeem ? "" : "disabled"}>${canRedeem ? "แลกของรางวัล" : "แต้มไม่พอ"}</button>
+            </div>
           </div>
-        </div>
-      `).join("");
+        </article>
+      `;
+      }).join("");
       els.redeemList.innerHTML = html || `<div class="empty">ยังไม่มีของรางวัล</div>`;
       els.rewardCatalog.innerHTML = html || `<div class="empty">ยังไม่มีของรางวัล</div>`;
       document.querySelectorAll("[data-redeem]").forEach(button => button.addEventListener("click", () => redeemReward(button.dataset.redeem)));
@@ -2027,10 +2440,21 @@
     window.addEventListener("hashchange", route);
     document.addEventListener("click", event => {
       const screenButton = event.target.closest("[data-screen]");
-      if (screenButton) showScreen(screenButton.dataset.screen);
+      if (!screenButton) return;
+      const targetScreen = screenButton.dataset.screen;
+      const targetHash = hashForScreen(targetScreen);
+      if (!targetHash) {
+        showScreen("screenRouteError");
+        return;
+      }
+      if (location.hash === targetHash) {
+        showScreen(targetScreen);
+      } else {
+        location.hash = targetHash;
+      }
     });
     $("#registerForm").addEventListener("submit", registerCustomer);
-    $("#submitPurchaseForm").addEventListener("submit", submitPurchase);
+    $("#submitPurchaseForm")?.addEventListener("submit", submitPurchase);
     $("#counterSaleForm").addEventListener("submit", counterSale);
     $("#rewardForm").addEventListener("submit", addReward);
     $("#seedBtn")?.addEventListener("click", seedData);
@@ -2042,10 +2466,39 @@
     });
     els.adminLogoutBtn?.addEventListener("click", logoutAdmin);
 
+    document.addEventListener("error", event => {
+      const image = event.target;
+      if (!(image instanceof HTMLImageElement)) return;
+      const fallbackId = image.dataset.fallback;
+      if (fallbackId) {
+        image.hidden = true;
+        const fallback = document.getElementById(fallbackId);
+        if (fallback) fallback.hidden = false;
+        return;
+      }
+      if (image.dataset.imageFallback) {
+        const placeholder = document.createElement("div");
+        placeholder.className = "image-placeholder";
+        placeholder.textContent = image.dataset.imageFallback;
+        image.replaceWith(placeholder);
+      }
+    }, true);
+
     async function boot() {
-      await initLineIdentity({ skipLogin: isAdminRoute() });
-      await loadCloudState();
-      route();
+      try {
+        document.querySelectorAll("[data-store-logo]").forEach(image => { image.src = ASSET_CONFIG.storeLogo; });
+        await initLineIdentity({ skipLogin: isAdminRoute() });
+        if (isLocalPreview()) {
+          state = createLocalPreviewState();
+          isCloudReady = false;
+        } else {
+          await loadCloudState();
+        }
+        route();
+      } catch (error) {
+        console.error("Unable to load member interface", error);
+        els.memberSummary.innerHTML = `<div class="state-message">โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</div>`;
+      }
     }
 
     boot();
