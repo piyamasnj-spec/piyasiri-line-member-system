@@ -944,6 +944,7 @@
       .points { font-size: 46px; }
       main { padding: 12px; }
       body.admin-mode main { padding-bottom: 28px; }
+      .admin-promotion-link { align-items: stretch; flex-direction: column; }
       .stats { grid-template-columns: 1fr 1fr; }
       .stat { padding: 12px; }
       .stat strong { font-size: 22px; }
@@ -1046,6 +1047,22 @@
     .promotion-visual { position: absolute; right: 0; top: 0; width: 40%; height: 100%; display: grid; place-items: center; color: #6d9778; background: rgba(255,255,255,.32); }
     .promotion-visual img { width: 100%; height: 100%; object-fit: cover; }
     .promotion-visual svg { width: 48px; height: 48px; }
+
+    .promotion-list { display: grid; gap: 12px; }
+    .promotion-card { overflow: hidden; border: 1px solid #dfe8e1; border-radius: 15px; background: white; box-shadow: 0 5px 16px rgba(18,50,43,.05); }
+    .promotion-card-visual { aspect-ratio: 16 / 7; display: grid; place-items: center; color: #6d9778; background: #edf6ef; border-bottom: 1px solid #e1ebe3; }
+    .promotion-card-visual svg { width: 44px; height: 44px; }
+    .promotion-card-body { padding: 15px; display: grid; gap: 9px; }
+    .promotion-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .promotion-card-head strong { color: #143d2b; font-size: 17px; line-height: 1.35; }
+    .promotion-card-code { flex: 0 0 auto; padding: 4px 7px; border-radius: 999px; background: #edf6ef; color: #087443; font-size: 10px; font-weight: 800; }
+    .promotion-card-description { margin: 0; color: #40584a; font-size: 14px; line-height: 1.55; }
+    .promotion-card-meta { display: flex; flex-wrap: wrap; gap: 7px; color: var(--muted); font-size: 11px; }
+    .promotion-card-meta span { padding: 5px 8px; border-radius: 999px; background: #f5f7f4; }
+
+    .admin-promotion-link { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .admin-promotion-link-copy { display: grid; gap: 5px; }
+    .admin-promotion-link-copy p { margin: 0; color: var(--muted); line-height: 1.5; }
 
     .recent-list { display: grid; gap: 9px; }
     .recent-row { padding: 13px; border: 1px solid #e1e7e2; border-radius: 13px; background: white; display: flex; justify-content: space-between; gap: 12px; box-shadow: 0 3px 12px rgba(18,50,43,.035); }
@@ -1230,7 +1247,18 @@
           <a href="#admin-customers">สมาชิก</a>
           <a href="#admin-redemptions">คำขอแลกของ</a>
           <a href="#admin-rewards">ของรางวัล</a>
+          <a href="https://docs.google.com/spreadsheets/d/1YQBSm6XcdGgqB3hflV_4vAG27oqRC0eSQ6Fv3rwL3KI/edit#gid=220260815" target="_blank" rel="noopener noreferrer">จัดการโปรโมชั่น</a>
         </div>
+
+        <section class="card" id="admin-promotions">
+          <div class="card-body admin-promotion-link">
+            <div class="admin-promotion-link-copy">
+              <h3>จัดการโปรโมชั่น</h3>
+              <p>เพิ่มหรือแก้โปรโมชั่นในชีตนี้ แล้วหน้าลูกค้าจะอัปเดตอัตโนมัติ</p>
+            </div>
+            <a class="btn primary" href="https://docs.google.com/spreadsheets/d/1YQBSm6XcdGgqB3hflV_4vAG27oqRC0eSQ6Fv3rwL3KI/edit#gid=220260815" target="_blank" rel="noopener noreferrer">เปิดชีตโปรโมชั่น</a>
+          </div>
+        </section>
 
         <section class="stats">
           <div class="stat"><span>สมาชิก</span><strong id="statCustomers">0</strong></div>
@@ -1307,6 +1335,7 @@
 
   <script type="module">
     import { bottomNavTarget, hashForScreen, resolveCustomerRoute } from "./src/customer-routes.mjs";
+    import { filterPublicPromotions, formatPromotionPeriod, promotionDescription, resolvePublicPromotionsEndpoint } from "./src/public-promotions.mjs";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
       get,
@@ -1326,11 +1355,6 @@
     const ASSET_CONFIG = Object.freeze({
       storeLogo: "assets/images/piyasiri-logo.png",
       rewardImageDirectory: "assets/rewards/"
-    });
-    const PROMOTION_CONFIG = Object.freeze({
-      imageUrl: "",
-      title: "",
-      description: ""
     });
     const firebaseConfig = {
       apiKey: "AIzaSyC18-4OWR8kV8Rpjp5DwBZpADDxcy1NXDY",
@@ -1354,6 +1378,7 @@
     let currentLineDisplayName = "LINE User";
     let isLiffReady = false;
     let isCloudReady = false;
+    let promotionState = { status: "idle", items: [], error: "" };
     const defaultRewards = [
       { id: "discount-50", name: "ส่วนลดสินค้า 50 บาท", points: 50 },
       { id: "delivery-free", name: "ส่งฟรี 1 ครั้ง", points: 80 },
@@ -1807,18 +1832,61 @@
     }
 
     function promotionVisualMarkup() {
-      if (PROMOTION_CONFIG.imageUrl) return `<img src="${escapeAttr(PROMOTION_CONFIG.imageUrl)}" alt="โปรโมชั่น" loading="lazy">`;
       return `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 23h36l-3 28H17zM22 23c0-9 4-14 10-14s10 5 10 14"/><path d="M22 35h20M32 28v14"/></svg>`;
     }
 
     function renderPromotionBanner() {
-      if (!PROMOTION_CONFIG.title && !PROMOTION_CONFIG.description && !PROMOTION_CONFIG.imageUrl) return "";
-      return `<section class="promotion-banner"><div class="promotion-banner-copy"><strong>${escapeHtml(PROMOTION_CONFIG.title)}</strong><small>${escapeHtml(PROMOTION_CONFIG.description)}</small><button class="btn" data-screen="screenRewards">ดูของรางวัล</button></div><div class="promotion-visual">${promotionVisualMarkup()}</div></section>`;
+      const promotion = promotionState.items[0];
+      if (!promotion) return "";
+      return `<section class="promotion-banner"><div class="promotion-banner-copy"><strong>${escapeHtml(promotion.name)}</strong><small>${escapeHtml(promotionDescription(promotion))}</small><button class="btn" data-screen="screenPromotions">ดูโปรโมชั่น</button></div><div class="promotion-visual">${promotionVisualMarkup()}</div></section>`;
     }
 
     function renderPromotionPage() {
-      const promotion = renderPromotionBanner();
-      els.promotionPage.innerHTML = promotion || `<div class="empty">ยังไม่มีโปรโมชั่นในขณะนี้</div>`;
+      if (["idle", "loading"].includes(promotionState.status)) {
+        els.promotionPage.innerHTML = `<div class="empty">กำลังโหลดโปรโมชั่น...</div>`;
+        return;
+      }
+      if (promotionState.status === "error") {
+        els.promotionPage.innerHTML = `<div class="empty">โหลดโปรโมชั่นไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</div>`;
+        return;
+      }
+      if (!promotionState.items.length) {
+        els.promotionPage.innerHTML = `<div class="empty">ขณะนี้ยังไม่มีโปรโมชั่น</div>`;
+        return;
+      }
+      els.promotionPage.innerHTML = `<div class="promotion-list">${promotionState.items.map(promotion => `
+        <article class="promotion-card">
+          <div class="promotion-card-visual" aria-label="ยังไม่มีรูปโปรโมชั่น">${promotionVisualMarkup()}</div>
+          <div class="promotion-card-body">
+            <div class="promotion-card-head"><strong>${escapeHtml(promotion.name)}</strong><span class="promotion-card-code">${escapeHtml(promotion.code)}</span></div>
+            <p class="promotion-card-description">${escapeHtml(promotionDescription(promotion))}</p>
+            <div class="promotion-card-meta"><span>${escapeHtml(promotion.type)}</span><span>${escapeHtml(formatPromotionPeriod(promotion))}</span><span>สถานะ ใช้งาน</span></div>
+          </div>
+        </article>`).join("")}</div>`;
+    }
+
+    async function loadPublicPromotions() {
+      const endpoint = resolvePublicPromotionsEndpoint(location);
+      if (!endpoint) {
+        promotionState = { status: "ready", items: [], error: "" };
+        renderCustomer();
+        return;
+      }
+      promotionState = { status: "loading", items: [], error: "" };
+      renderPromotionPage();
+      try {
+        const response = await fetch(endpoint, { cache: "no-store", credentials: "omit" });
+        if (!response.ok) throw new Error(`Promotion endpoint returned ${response.status}`);
+        const payload = await response.json();
+        if (payload?.ok === false) throw new Error("Promotion endpoint rejected the request");
+        const rows = Array.isArray(payload) ? payload : payload?.promotions;
+        if (!Array.isArray(rows)) throw new Error("Promotion endpoint returned an invalid payload");
+        promotionState = { status: "ready", items: filterPublicPromotions(rows), error: "" };
+      } catch (error) {
+        promotionState = { status: "error", items: [], error: error.message || "unknown" };
+        console.warn("Unable to load public promotions");
+      }
+      renderCustomer();
     }
 
     function renderProfile(customer) {
@@ -2495,6 +2563,7 @@
           await loadCloudState();
         }
         route();
+        void loadPublicPromotions();
       } catch (error) {
         console.error("Unable to load member interface", error);
         els.memberSummary.innerHTML = `<div class="state-message">โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</div>`;
