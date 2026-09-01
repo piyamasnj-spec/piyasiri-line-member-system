@@ -1335,6 +1335,12 @@
 
   <script type="module">
     import { bottomNavTarget, hashForScreen, resolveCustomerRoute } from "./src/customer-routes.mjs";
+    import {
+      establishLiffIdentity,
+      isLiffNetworkFailure,
+      LiffInitializationError,
+      resolveLiffId
+    } from "./src/liff-login-flow.mjs";
     import { filterPublicPromotions, formatPromotionPeriod, promotionDescription, resolvePublicPromotionsEndpoint } from "./src/public-promotions.mjs";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
     import {
@@ -1348,7 +1354,12 @@
     const STORE_KEY = "line_oa_member_liff_demo_v1";
     const ADMIN_SESSION_KEY = "piyasiri_admin_session";
     const ADMIN_PASSCODE = "2312";
-    const LIFF_ID = "2010437975-l0M2FpDv";
+    const LIFF_CONFIG = Object.freeze({
+      productionHostname: "piyasiri-line-member-system.netlify.app",
+      productionId: "2010437975-l0M2FpDv",
+      testId: ""
+    });
+    const LIFF_AUTOMATIC_INIT_ATTEMPTS = 2;
     const POINT_RATE = 100;
     const NOTIFICATION_ENDPOINT = "/.netlify/functions/send-line-message";
     const MOCK_LINE_USER_ID = "U-demo-line-user";
@@ -1378,6 +1389,8 @@
     let currentLineDisplayName = "LINE User";
     let isLiffReady = false;
     let isCloudReady = false;
+    let bootInProgress = false;
+    let manualLiffRetryUsed = false;
     let promotionState = { status: "idle", items: [], error: "" };
     const defaultRewards = [
       { id: "discount-50", name: "ส่วนลดสินค้า 50 บาท", points: 50 },
@@ -1394,6 +1407,7 @@
       adminView: $("#adminView"),
       navMember: $("#navMember"),
       navAdmin: $("#navAdmin"),
+      bottomNav: $(".bottom-nav"),
       memberSummary: $("#memberSummary"),
       homeHighlights: $("#homeHighlights"),
       pointsDetail: $("#pointsDetail"),
@@ -1627,36 +1641,46 @@
       showToast("ออกจากหลังบ้านแล้ว");
     }
 
-    async function initLineIdentity({ skipLogin = false } = {}) {
+    async function initLineIdentity({ skipLogin = false, maxAttempts = LIFF_AUTOMATIC_INIT_ATTEMPTS } = {}) {
       if (isLocalPreview()) {
         currentLineUserId = MOCK_LINE_USER_ID;
         currentLineDisplayName = "Demo User";
         isLiffReady = false;
-        return;
+        return { status: "local-preview", isLiffReady: false };
       }
-      if (!window.liff) {
-        isLiffReady = false;
-        return;
+
+      const liffId = resolveLiffId({
+        hostname: location.hostname,
+        productionHostname: LIFF_CONFIG.productionHostname,
+        productionId: LIFF_CONFIG.productionId,
+        testId: LIFF_CONFIG.testId
+      });
+      if (!liffId && !skipLogin) {
+        throw new LiffInitializationError(new Error("ยังไม่ได้ตั้งค่า Test LIFF ID สำหรับ Preview"), {
+          code: "TEST_LIFF_ID_MISSING"
+        });
       }
-      try {
-        await liff.init({ liffId: LIFF_ID });
-        isLiffReady = true;
-        if (!liff.isLoggedIn()) {
-          if (skipLogin) {
-            isLiffReady = false;
-            return;
-          }
-          liff.login();
-          return;
+
+      const identity = await establishLiffIdentity({
+        liff: window.liff,
+        liffId,
+        storage: sessionStorage,
+        locationLike: location,
+        skipLogin,
+        maxAttempts
+      });
+      isLiffReady = identity.isLiffReady;
+
+      if (identity.status === "ready") {
+        currentLineUserId = identity.profile.userId;
+        currentLineDisplayName = identity.profile.displayName || "LINE User";
+        if (identity.restoredRoute && location.hash !== identity.restoredRoute) {
+          const restoredUrl = new URL(location.href);
+          restoredUrl.hash = identity.restoredRoute;
+          history.replaceState(history.state, "", restoredUrl);
         }
-        const profile = await liff.getProfile();
-        currentLineUserId = profile.userId;
-        currentLineDisplayName = profile.displayName || "LINE User";
-      } catch (error) {
-        currentLineUserId = null;
-        isLiffReady = false;
-        console.warn("LIFF init failed", error);
       }
+      return identity;
     }
 
     async function seedData() {
@@ -2552,10 +2576,51 @@
       }
     }, true);
 
-    async function boot() {
+    function renderLiffError(error, { allowRetry = false } = {}) {
+      document.querySelectorAll(".customer-screen").forEach(screen => screen.classList.remove("active"));
+      $("#screenHome").classList.add("active");
+      els.homeHighlights.innerHTML = "";
+      els.bottomNav.hidden = true;
+
+      const missingTestConfig = error?.code === "TEST_LIFF_ID_MISSING";
+      const redirectLoop = error?.code === "LIFF_REDIRECT_LOOP";
+      const title = missingTestConfig
+        ? "Preview นี้ยังไม่ได้ตั้งค่า LINE Login สำหรับทดสอบ"
+        : redirectLoop
+          ? "ไม่สามารถกลับจาก LINE Login ได้อย่างปลอดภัย"
+          : "เชื่อมต่อ LINE ไม่สำเร็จ";
+      const detail = missingTestConfig
+        ? "ต้องใช้ Test LIFF ID ที่ชี้มายัง Netlify Preview โดยเฉพาะ"
+        : "กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่อีกครั้ง";
+
+      els.memberSummary.innerHTML = `
+        <div class="state-message" role="alert">
+          <strong>${escapeHtml(title)}</strong>
+          <p>${escapeHtml(detail)}</p>
+          ${allowRetry ? `<button class="btn primary" id="liffRetryBtn" type="button">ลองเชื่อมต่อใหม่</button>` : ""}
+        </div>`;
+
+      $("#liffRetryBtn")?.addEventListener("click", () => {
+        manualLiffRetryUsed = true;
+        els.memberSummary.innerHTML = `<div class="state-message">กำลังเชื่อมต่อ LINE อีกครั้ง...</div>`;
+        void boot({ manualRetry: true });
+      }, { once: true });
+    }
+
+    async function boot({ manualRetry = false } = {}) {
+      if (bootInProgress) return;
+      bootInProgress = true;
+      let bootStage = "identity";
       try {
         document.querySelectorAll("[data-store-logo]").forEach(image => { image.src = ASSET_CONFIG.storeLogo; });
-        await initLineIdentity({ skipLogin: isAdminRoute() });
+        if (!isAdminRoute() && !isLocalPreview()) els.bottomNav.hidden = true;
+        const identity = await initLineIdentity({
+          skipLogin: isAdminRoute(),
+          maxAttempts: manualRetry ? 1 : LIFF_AUTOMATIC_INIT_ATTEMPTS
+        });
+        if (identity.status === "redirecting") return;
+
+        bootStage = "data";
         if (isLocalPreview()) {
           state = createLocalPreviewState();
           isCloudReady = false;
@@ -2563,10 +2628,25 @@
           await loadCloudState();
         }
         route();
+        if (!isAdminRoute()) els.bottomNav.hidden = false;
         void loadPublicPromotions();
       } catch (error) {
+        if (bootStage === "identity") {
+          const networkFailure = error instanceof LiffInitializationError && error.networkFailure;
+          console.error("Unable to initialize LIFF", {
+            code: error?.code || "LIFF_IDENTITY_FAILED",
+            attempts: error?.attempts || 0,
+            networkFailure
+          });
+          renderLiffError(error, {
+            allowRetry: networkFailure && !manualRetry && !manualLiffRetryUsed
+          });
+          return;
+        }
         console.error("Unable to load member interface", error);
         els.memberSummary.innerHTML = `<div class="state-message">โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่อีกครั้ง</div>`;
+      } finally {
+        bootInProgress = false;
       }
     }
 
