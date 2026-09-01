@@ -37,17 +37,31 @@ test("all four main menu buttons have the required click destinations", () => {
   assert.equal((html.match(/<button class="menu-tile"/g) || []).length, 4);
 });
 
-test("promotion and local mock remain centrally configured and localhost-only", () => {
-  assert.match(html, /const PROMOTION_CONFIG = Object\.freeze/);
+test("public promotions use the read-only feed and local member mock stays localhost-only", () => {
+  assert.match(html, /from "\.\/src\/public-promotions\.mjs"/);
+  assert.match(html, /resolvePublicPromotionsEndpoint\(location\)/);
+  assert.match(html, /fetch\(endpoint, \{ cache: "no-store", credentials: "omit" \}\)/);
   assert.match(html, /function isLocalPreview/);
   assert.match(html, /\["localhost", "127\.0\.0\.1"\]/);
   assert.match(memberMarkup, /id="screenPromotions"/);
   assert.match(memberMarkup, /id="screenProfile"/);
-  assert.match(html, /title: "",\s*description: ""/);
-  assert.match(html, /ยังไม่มีโปรโมชั่นในขณะนี้/);
+  assert.doesNotMatch(html, /PROMOTION_CONFIG/);
+  assert.match(html, /ขณะนี้ยังไม่มีโปรโมชั่น/);
+  assert.match(html, /โหลดโปรโมชั่นไม่สำเร็จ/);
   assert.match(html, /let currentLineUserId = null/);
   assert.match(html, /if \(isLocalPreview\(\)\) \{\s*currentLineUserId = MOCK_LINE_USER_ID/);
   assert.doesNotMatch(html, /LIFF init failed; using demo mode/);
+});
+
+test("admin promotion controls open the confirmed Google Sheet tab in a new tab", () => {
+  const sheetUrl = "https://docs.google.com/spreadsheets/d/1YQBSm6XcdGgqB3hflV_4vAG27oqRC0eSQ6Fv3rwL3KI/edit#gid=220260815";
+  const links = html.match(new RegExp(`<a[^>]+href="${sheetUrl}"[^>]*>`, "g")) || [];
+  assert.equal(links.length, 2);
+  for (const link of links) {
+    assert.match(link, /target="_blank"/);
+    assert.match(link, /rel="noopener noreferrer"/);
+  }
+  assert.match(html, /เพิ่มหรือแก้โปรโมชั่นในชีตนี้ แล้วหน้าลูกค้าจะอัปเดตอัตโนมัติ/);
 });
 
 test("optional member fields are hidden when backend fields are absent", () => {
