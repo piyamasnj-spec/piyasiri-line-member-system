@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
@@ -237,4 +238,15 @@ test("Production LIFF ID is isolated from previews without a configured Test LIF
   assert.equal(resolveLiffId({ hostname: config.productionHostname, ...config, testId: "test-liff-id" }), "production-liff-id");
   assert.equal(resolveLiffId({ hostname: "deploy-preview-5--piyasiri-line-member-system.netlify.app", ...config }), "");
   assert.equal(resolveLiffId({ hostname: "deploy-preview-5--piyasiri-line-member-system.netlify.app", ...config, testId: "test-liff-id" }), "test-liff-id");
+});
+
+test("LIFF failure makes the member error view visible instead of leaving a blank page", () => {
+  const source = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const errorRenderer = source.match(/function renderLiffError[\s\S]*?\n    }\n\n    async function boot/)?.[0] || "";
+
+  assert.match(errorRenderer, /memberView\.classList\.add\("active"\)/);
+  assert.match(errorRenderer, /adminView\.classList\.remove\("active"\)/);
+  assert.match(errorRenderer, /document\.body\.classList\.add\("member-mode"\)/);
+  assert.match(errorRenderer, /memberSummary\.innerHTML/);
+  assert.match(errorRenderer, /role="alert"/);
 });
