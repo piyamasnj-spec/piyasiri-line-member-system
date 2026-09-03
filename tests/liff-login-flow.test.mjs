@@ -241,7 +241,7 @@ test("Production LIFF ID is isolated from previews without a configured Test LIF
 });
 
 test("LIFF failure makes the member error view visible instead of leaving a blank page", () => {
-  const source = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const source = readFileSync(new URL("../index.html", import.meta.url), "utf8").replace(/\r\n?/g, "\n");
   const errorRenderer = source.match(/function renderLiffError[\s\S]*?\n    }\n\n    async function boot/)?.[0] || "";
 
   assert.match(errorRenderer, /memberView\.classList\.add\("active"\)/);
@@ -249,4 +249,11 @@ test("LIFF failure makes the member error view visible instead of leaving a blan
   assert.match(errorRenderer, /document\.body\.classList\.add\("member-mode"\)/);
   assert.match(errorRenderer, /memberSummary\.innerHTML/);
   assert.match(errorRenderer, /role="alert"/);
+});
+
+test("the configured Test LIFF ID is limited to the exact Deploy Preview hostname", () => {
+  const source = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+
+  assert.match(source, /previewHostname: "deploy-preview-5--piyasiri-line-member-system\.netlify\.app"/);
+  assert.match(source, /testId: location\.hostname === LIFF_CONFIG\.previewHostname \? LIFF_CONFIG\.testId : ""/);
 });
