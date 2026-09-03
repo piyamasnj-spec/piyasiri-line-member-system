@@ -1357,6 +1357,7 @@
     const LIFF_CONFIG = Object.freeze({
       productionHostname: "piyasiri-line-member-system.netlify.app",
       productionId: "2010437975-l0M2FpDv",
+      previewHostname: "deploy-preview-5--piyasiri-line-member-system.netlify.app",
       testId: "2010437975-KuhCxgSx"
     });
     const LIFF_AUTOMATIC_INIT_ATTEMPTS = 2;
@@ -1653,7 +1654,7 @@
         hostname: location.hostname,
         productionHostname: LIFF_CONFIG.productionHostname,
         productionId: LIFF_CONFIG.productionId,
-        testId: LIFF_CONFIG.testId
+        testId: location.hostname === LIFF_CONFIG.previewHostname ? LIFF_CONFIG.testId : ""
       });
       if (!liffId && !skipLogin) {
         throw new LiffInitializationError(new Error("ยังไม่ได้ตั้งค่า Test LIFF ID สำหรับ Preview"), {
