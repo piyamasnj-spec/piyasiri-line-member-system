@@ -2577,6 +2577,12 @@
     }, true);
 
     function renderLiffError(error, { allowRetry = false } = {}) {
+      els.memberView.classList.add("active");
+      els.adminView.classList.remove("active");
+      document.body.classList.add("member-mode");
+      document.body.classList.remove("admin-mode", "admin-authenticated");
+      els.navMember.classList.add("active");
+      els.navAdmin.classList.remove("active");
       document.querySelectorAll(".customer-screen").forEach(screen => screen.classList.remove("active"));
       $("#screenHome").classList.add("active");
       els.homeHighlights.innerHTML = "";
