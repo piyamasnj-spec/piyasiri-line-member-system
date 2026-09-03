@@ -234,6 +234,7 @@ test("Production LIFF ID is isolated from previews without a configured Test LIF
     testId: ""
   };
   assert.equal(resolveLiffId({ hostname: config.productionHostname, ...config }), "production-liff-id");
+  assert.equal(resolveLiffId({ hostname: config.productionHostname, ...config, testId: "test-liff-id" }), "production-liff-id");
   assert.equal(resolveLiffId({ hostname: "deploy-preview-5--piyasiri-line-member-system.netlify.app", ...config }), "");
   assert.equal(resolveLiffId({ hostname: "deploy-preview-5--piyasiri-line-member-system.netlify.app", ...config, testId: "test-liff-id" }), "test-liff-id");
 });
