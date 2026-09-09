@@ -129,6 +129,9 @@ test("one bottom-navigation request changes the ready route immediately", () => 
 });
 
 test("integration gates customer rendering and preserves the audited bootstrap order without timers", () => {
+  assert.match(html, /function activateMemberBootstrapShell\(\)[\s\S]*?memberView\.classList\.add\("active"\)[\s\S]*?#screenHome/);
+  assert.match(html, /function renderMemberBootstrapLoading\(\)\s*\{\s*activateMemberBootstrapShell\(\);/);
+  assert.match(html, /function renderMemberBootstrapError\(error\)\s*\{\s*activateMemberBootstrapShell\(\);/);
   assert.match(html, /function renderMemberBootstrapLoading\(\)[\s\S]*?กำลังตรวจสอบข้อมูลสมาชิก/);
   assert.match(html, /if \(mode === "loading"\)[\s\S]*?renderMemberBootstrapLoading\(\)[\s\S]*?return;/);
   assert.match(html, /if \(mode === "error"\)[\s\S]*?renderMemberBootstrapError/);
