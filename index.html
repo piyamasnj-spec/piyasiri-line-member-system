@@ -2662,7 +2662,19 @@
       }, { once: true });
     }
 
+    function activateMemberBootstrapShell() {
+      els.memberView.classList.add("active");
+      els.adminView.classList.remove("active");
+      document.body.classList.add("member-mode");
+      document.body.classList.remove("admin-mode", "admin-authenticated");
+      els.navMember.classList.add("active");
+      els.navAdmin.classList.remove("active");
+      document.querySelectorAll(".customer-screen").forEach(screen => screen.classList.remove("active"));
+      $("#screenHome").classList.add("active");
+    }
+
     function renderMemberBootstrapLoading() {
+      activateMemberBootstrapShell();
       els.bottomNav.hidden = true;
       els.homeHighlights.innerHTML = "";
       els.memberSummary.innerHTML = `
@@ -2673,6 +2685,7 @@
     }
 
     function renderMemberBootstrapError(error) {
+      activateMemberBootstrapShell();
       els.bottomNav.hidden = true;
       els.homeHighlights.innerHTML = "";
       els.memberSummary.innerHTML = `
