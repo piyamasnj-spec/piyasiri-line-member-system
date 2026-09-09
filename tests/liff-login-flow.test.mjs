@@ -254,6 +254,6 @@ test("LIFF failure makes the member error view visible instead of leaving a blan
 test("the configured Test LIFF ID is limited to the exact Deploy Preview hostname", () => {
   const source = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
-  assert.match(source, /previewHostname: "deploy-preview-5--piyasiri-line-member-system\.netlify\.app"/);
+  assert.match(source, /previewHostname: "deploy-preview-6--piyasiri-line-member-system\.netlify\.app"/);
   assert.match(source, /testId: location\.hostname === LIFF_CONFIG\.previewHostname \? LIFF_CONFIG\.testId : ""/);
 });
