@@ -1634,7 +1634,7 @@
     }
 
     function isAdminRoute() {
-      return location.hash.startsWith("#admin");
+      return location.hostname.toLowerCase() === "admin.piyasiriagro.com" || location.hash.startsWith("#admin");
     }
 
     function isAdminAuthenticated() {
