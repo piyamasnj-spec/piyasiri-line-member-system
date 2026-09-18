@@ -1746,7 +1746,7 @@
       const liffState = params.get("liff.state") || "";
       const stateParams = liffState.includes("?") ? new URLSearchParams(liffState.split("?")[1]) : new URLSearchParams(liffState.replace(/^#/, ""));
       const screenParam = params.get("screen") || stateParams.get("screen");
-      const isAdmin = hash.startsWith("#admin");
+      const isAdmin = location.hostname.toLowerCase() === "admin.piyasiriagro.com" || hash.startsWith("#admin");
       const adminAuthenticated = isAdminAuthenticated();
       const screenByParam = {
         home: "screenHome",
