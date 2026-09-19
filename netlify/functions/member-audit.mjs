@@ -1,22 +1,31 @@
 import { firebaseRead, toArray } from "./lib/firebase-rest.mjs";
-
-const headers = { "Content-Type": "application/json; charset=utf-8" };
-const json = (statusCode, body) => ({ statusCode, headers, body: JSON.stringify(body) });
-
-function authorized(event) {
-  const configured = process.env.SHEET_SYNC_SECRET;
-  const supplied = event.headers["x-sheet-sync-secret"] || event.headers["X-Sheet-Sync-Secret"];
-  return Boolean(configured && supplied === configured);
-}
-
+import { sheetAuth } from "./lib/auth.mjs";
+const headers = {
+  "Content-Type": "application/json; charset=utf-8"
+};
+const json = (statusCode, body) => ({
+  statusCode,
+  headers,
+  body: JSON.stringify(body)
+});
 export async function handler(event) {
-  if (event.httpMethod !== "GET") return json(405, { ok: false, status: "method_not_allowed" });
-  if (!authorized(event)) return json(401, { ok: false, status: "unauthorized" });
+  if (event.httpMethod !== "GET") return json(405, {
+    ok: false,
+    status: "method_not_allowed"
+  });
   try {
-    const [redemptionsRaw, customersRaw] = await Promise.all([firebaseRead("redemptions"), firebaseRead("customers")]);
-    const customers = toArray(customersRaw.value);
-    const customerById = new Map(customers.map((item) => [item.id, item]));
-    const redemptions = toArray(redemptionsRaw.value).map((item) => {
+    sheetAuth(event);
+  } catch {
+    return json(401, {
+      ok: false,
+      status: "unauthorized"
+    });
+  }
+  try {
+    const root = (await firebaseRead("")).value || {};
+    const customers = toArray(root.customers);
+    const customerById = new Map(customers.map(item => [item.id, item]));
+    const redemptions = toArray(root.redemptions).map(item => {
       const customer = customerById.get(item.customerId) || {};
       return {
         id: item.id,
@@ -35,8 +44,14 @@ export async function handler(event) {
         note: item.note || ""
       };
     });
-    return json(200, { ok: true, redemptions });
+    return json(200, {
+      ok: true,
+      redemptions
+    });
   } catch (error) {
-    return json(500, { ok: false, status: "error", message: error.message });
+    return json(503, {
+      ok: false,
+      status: "service_unavailable"
+    });
   }
 }

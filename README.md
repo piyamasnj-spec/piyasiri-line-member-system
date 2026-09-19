@@ -2,15 +2,18 @@
 
 ระบบสมาชิก LINE OA สำหรับร้านปิยสิริเคมีเกษตร
 
-## Netlify Environment Variables
+Branch Stabilize นี้ยังไม่พร้อม Production: มี staging-only guard และหยุด reward stock sync จนยืนยัน deployed Apps Script contract
 
-ต้องตั้งค่าใน Netlify ก่อนใช้งานแจ้งเตือน LINE:
+ดู [security model / environment / integration blockers](docs/STABILIZATION_SECURITY_TH.md) และ [release gate](DEPLOY_CHECKLIST_TH.md)
 
-```text
-LINE_CHANNEL_ACCESS_TOKEN=Channel access token จาก LINE Messaging API
+```sh
+node --import ./tests/no-network.mjs --test tests/*.test.mjs
+node scripts/build-public.mjs
+node scripts/scan-secrets.mjs
 ```
 
-## Functions
+Firebase integration เป็นสคริปต์แยก `scripts/test-rules-emulator.mjs` ที่รับเฉพาะ local demo emulator ไม่ทำงานกับ Production
 
-- `/.netlify/functions/send-line-message` ส่งแจ้งเตือนเมื่ออนุมัติแต้มและจัดการแลกของ
-- `notify-expiring-points` รันวันละครั้งเพื่อเตือนแต้มใกล้หมดอายุ
+Netlify Functions ตรวจ Admin session หรือ verified LINE identity ก่อนเข้าถึงข้อมูล และใช้ server-only Firebase authentication; frontend ไม่มี credential และไม่เขียน Firebase โดยตรง
+
+Legacy POS/Stock/Promotion Engine คง Frozen ไม่มี ProMaxx Import ในรอบนี้

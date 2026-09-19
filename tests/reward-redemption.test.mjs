@@ -1,209 +1,388 @@
-import test from "node:test";
-import assert from "node:assert/strict";
-import { createRewardRedemptionHandler } from "../netlify/functions/reward-redemption.mjs";
-
-const TEST_HEADER_VALUE = ["unit", "test", "secret"].join("-");
-
-function clone(value) {
-  return value === undefined ? undefined : JSON.parse(JSON.stringify(value));
-}
-
-function valueAt(root, path) {
-  return path.split("/").filter(Boolean).reduce((value, key) => value?.[key], root);
-}
-
-function setAt(root, path, value) {
-  const keys = path.split("/").filter(Boolean);
-  let cursor = root;
-  for (let index = 0; index < keys.length - 1; index += 1) cursor = cursor[keys[index]] ||= {};
-  cursor[keys.at(-1)] = clone(value);
-}
-
-function fixture({ points = 6, stock = 2, active = true } = {}) {
-  const state = {
-    customers: { "test-member-key": { id: "TEST-MEMBER-001", points }, "real-member-key": { id: "REAL-MEMBER-001", points: 99 } },
-    rewards: { "test-reward-key": { id: "TEST-REWARD-001", name: "Test reward", points: 5, stock, active }, "real-reward-key": { id: "REAL-REWARD-001", name: "Real reward", points: 1, stock: 10, active: true } },
-    redemptions: {},
-    transactions: {}
-  };
-  const locks = new Map();
-  const stats = { reads: 0, patches: 0, claims: 0, finishes: 0 };
-  let uuidCounter = 0;
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { createRewardRedemptionHandler } from '../netlify/functions/reward-redemption.mjs';
+import { adminAuth, signSession, cookieName } from '../netlify/functions/lib/auth.mjs';
+import { fixture, actor, admin, event, parsed } from './helpers.mjs';
+const request = (overrides = {}) => ({
+  action: 'request',
+  rewardId: 'r',
+  operationId: 'op-1',
+  ...overrides
+});
+function setup(overrides = {}) {
+  const f = fixture(overrides);
   const handler = createRewardRedemptionHandler({
-    firebaseRead: async (path) => {
-      stats.reads += 1;
-      return { value: clone(valueAt(state, path)), etag: "etag" };
+    tx: f.tx,
+    authenticateMember: async e => {
+      if (e.headers.authorization !== 'Bearer fixture') throw Object.assign(new Error('invalid_line_identity'), {
+        statusCode: 401
+      });
+      return actor;
     },
-    firebaseRootPatch: async (updates) => {
-      stats.patches += 1;
-      for (const [path, value] of Object.entries(updates)) setAt(state, path, value);
-      return clone(updates);
-    },
-    claimOperation: async (kind, reference, payload = {}) => {
-      stats.claims += 1;
-      const key = `${kind}:${reference}`;
-      if (locks.has(key)) return { claimed: false, key, existing: clone(locks.get(key)) };
-      const record = { kind, reference, status: "processing", ...clone(payload) };
-      locks.set(key, record);
-      return { claimed: true, key, record: clone(record) };
-    },
-    finishOperation: async (key, updates) => {
-      stats.finishes += 1;
-      locks.set(key, { ...(locks.get(key) || {}), ...clone(updates) });
-    },
-    randomUUID: () => `uuid-${++uuidCounter}`,
-    now: () => "2026-08-10T08:00:00.000Z"
+    authenticateAdmin: e => adminAuth(e, {
+      read: f.read
+    })
   });
-  return { state, stats, handler };
-}
-
-function event(body, secret = TEST_HEADER_VALUE) {
-  return { httpMethod: "POST", headers: secret === null ? {} : { "X-Sheet-Sync-Secret": secret }, body: JSON.stringify(body) };
-}
-
-function testRequest(overrides = {}) {
+  process.env.APP_ORIGIN = 'https://staging.example';
+  process.env.ADMIN_SESSION_SECRET = 'test-only-session-key-'.repeat(3);
+  const call = async body => parsed(await handler(event(body, {
+    authorization: 'Bearer fixture'
+  })));
+  const manage = async body => parsed(await handler(event(body, {
+    origin: process.env.APP_ORIGIN,
+    cookie: `${cookieName}=${signSession(admin)}`
+  })));
   return {
-    action: "request",
-    testMode: true,
-    memberId: "TEST-MEMBER-001",
-    rewardId: "TEST-REWARD-001",
-    redemptionId: "TEST-REDEMPTION-001",
-    operationId: "TEST-REDEMPTION-001",
-    quantity: 1,
-    operator: "TEST-OPERATOR",
-    ...overrides
+    f,
+    handler,
+    call,
+    manage
   };
 }
-
-async function call(handler, body, secret = TEST_HEADER_VALUE) {
-  const response = await handler(event(body, secret));
-  return { statusCode: response.statusCode, body: JSON.parse(response.body) };
-}
-
-test.beforeEach(() => {
-  process.env.SHEET_SYNC_SECRET = TEST_HEADER_VALUE;
+test('regression: anonymous normal redemption cannot deduct points', async () => {
+  const {
+    handler,
+    f
+  } = setup();
+  const before = f.state;
+  assert.equal((await handler(event(request()))).statusCode, 401);
+  assert.deepEqual(f.state, before);
 });
-
-test("testMode accepts TEST member, reward and caller redemption ID", async () => {
-  const context = fixture();
-  const result = await call(context.handler, testRequest());
-  assert.equal(result.statusCode, 200);
-  assert.equal(result.body.redemptionId, "TEST-REDEMPTION-001");
-  assert.equal(context.state.redemptions["TEST-REDEMPTION-001"].testMode, true);
-});
-
-for (const [name, overrides, message] of [
-  ["real member", { memberId: "REAL-MEMBER-001" }, "test_member_id_required"],
-  ["real reward", { rewardId: "REAL-REWARD-001" }, "test_reward_id_required"],
-  ["non-TEST redemption ID", { redemptionId: "redeem-real", operationId: "redeem-real" }, "test_redemption_id_required"]
-]) {
-  test(`testMode rejects ${name} before Firebase access`, async () => {
-    const context = fixture();
-    const result = await call(context.handler, testRequest(overrides));
-    assert.equal(result.statusCode, 400);
-    assert.equal(result.body.message, message);
-    assert.deepEqual(context.stats, { reads: 0, patches: 0, claims: 0, finishes: 0 });
+test('successful redemption commits points, stock, history and receipt together', async () => {
+  const {
+    call,
+    f
+  } = setup();
+  const r = await call(request());
+  assert.equal(r.status, 200);
+  assert.equal(f.state.customers.m.points, 5);
+  assert.equal(f.state.rewards.r.stock, 1);
+  assert.equal(Object.keys(f.state.redemptions).length, 1);
+  assert.equal(Object.keys(f.state.transactions).length, 1);
+  assert.equal(Object.keys(f.state.secureOperations).length, 1);
+  assert.deepEqual(f.state.unrelated, {
+    preserved: true
   });
-}
-
-test("wrong secret returns 401 before Firebase access", async () => {
-  const context = fixture();
-  const result = await call(context.handler, testRequest(), "wrong-secret");
-  assert.equal(result.statusCode, 401);
-  assert.deepEqual(context.stats, { reads: 0, patches: 0, claims: 0, finishes: 0 });
 });
-
-test("missing secret returns 401 before Firebase access", async () => {
-  const context = fixture();
-  const result = await call(context.handler, testRequest(), null);
-  assert.equal(result.statusCode, 401);
-  assert.deepEqual(context.stats, { reads: 0, patches: 0, claims: 0, finishes: 0 });
+for (const [name, overrides] of [['insufficient points', {
+  customers: {
+    m: {
+      id: 'm',
+      lineUserId: actor.sub,
+      points: 4
+    }
+  }
+}], ['insufficient stock', {
+  rewards: {
+    r: {
+      id: 'r',
+      points: 5,
+      stock: 0,
+      active: true
+    }
+  }
+}], ['inactive reward', {
+  rewards: {
+    r: {
+      id: 'r',
+      points: 5,
+      stock: 2,
+      active: false
+    }
+  }
+}], ['invalid member', {
+  customers: {}
+}], ['invalid reward', {
+  rewards: {}
+}], ['corrupt points', {
+  customers: {
+    m: {
+      id: 'm',
+      lineUserId: actor.sub,
+      points: 'NaN'
+    }
+  }
+}]]) test(`${name} makes no changes`, async () => {
+  const {
+      call,
+      f
+    } = setup(overrides),
+    before = f.state;
+  const r = await call(request());
+  assert.ok(r.status >= 400);
+  assert.deepEqual(f.state, before);
 });
-
-test("first TEST redemption deducts points and stock once and stores its snapshot", async () => {
-  const context = fixture();
-  const result = await call(context.handler, testRequest());
-  const redemption = context.state.redemptions["TEST-REDEMPTION-001"];
-  assert.equal(result.body.totalPoints, 1);
-  assert.equal(result.body.stock, 1);
-  assert.equal(context.state.customers["test-member-key"].points, 1);
-  assert.equal(context.state.rewards["test-reward-key"].stock, 1);
-  assert.deepEqual({ memberId: redemption.memberId, rewardId: redemption.rewardId, pointsUsed: redemption.pointsUsed, quantity: redemption.quantity, stockBefore: redemption.stockBefore, stockAfter: redemption.stockAfter, stockChange: redemption.stockChange, operator: redemption.operator, status: redemption.status }, { memberId: "TEST-MEMBER-001", rewardId: "TEST-REWARD-001", pointsUsed: 5, quantity: 1, stockBefore: 2, stockAfter: 1, stockChange: -1, operator: "TEST-OPERATOR", status: "requested" });
+test('member ID from request cannot impersonate another member', async () => {
+  const {
+    call,
+    f
+  } = setup();
+  assert.equal((await call(request({
+    memberId: 'someone-else'
+  }))).status, 403);
+  assert.equal(f.state.customers.m.points, 10);
 });
-
-test("duplicate TEST redemption ID does not deduct twice", async () => {
-  const context = fixture();
-  await call(context.handler, testRequest());
-  const patchesAfterFirst = context.stats.patches;
-  const result = await call(context.handler, testRequest());
-  assert.equal(result.body.status, "duplicate");
-  assert.equal(context.state.customers["test-member-key"].points, 1);
-  assert.equal(context.state.rewards["test-reward-key"].stock, 1);
-  assert.equal(context.stats.patches, patchesAfterFirst);
-  assert.equal(Object.keys(context.state.redemptions).length, 1);
+for (const quantity of [0, -1, 1.5, 'bad', Number.MAX_SAFE_INTEGER]) test(`invalid or impossible quantity ${quantity} denied`, async () => {
+  const {
+    call,
+    f
+  } = setup();
+  assert.ok((await call(request({
+    quantity
+  }))).status >= 400);
+  assert.equal(f.state.customers.m.points, 10);
 });
-
-test("insufficient points makes no business-data changes", async () => {
-  const context = fixture({ points: 4 });
-  const before = clone(context.state);
-  const result = await call(context.handler, testRequest());
-  assert.equal(result.statusCode, 409);
-  assert.equal(result.body.message, "insufficient points");
-  assert.deepEqual(context.state, before);
-  assert.equal(context.stats.patches, 0);
+test('duplicate/retry/replay returns same receipt without deducting again', async () => {
+  const {
+    call,
+    f
+  } = setup();
+  const a = await call(request()),
+    b = await call(request());
+  assert.equal(a.redemptionId, b.redemptionId);
+  assert.equal(b.replayed, true);
+  assert.equal(f.state.customers.m.points, 5);
 });
-
-test("insufficient stock makes no business-data changes", async () => {
-  const context = fixture({ stock: 0 });
-  const before = clone(context.state);
-  const result = await call(context.handler, testRequest());
-  assert.equal(result.statusCode, 409);
-  assert.equal(result.body.message, "out of stock");
-  assert.deepEqual(context.state, before);
-  assert.equal(context.stats.patches, 0);
+test('same idempotency key with changed payload rejected', async () => {
+  const {
+    call,
+    f
+  } = setup();
+  await call(request());
+  assert.equal((await call(request({
+    quantity: 2
+  }))).status, 409);
+  assert.equal(f.state.customers.m.points, 5);
 });
-
-test("TEST cancellation refunds pointsUsed and quantity from the stored redemption", async () => {
-  const context = fixture();
-  await call(context.handler, testRequest());
-  context.state.rewards["test-reward-key"].points = 999;
-  const result = await call(context.handler, { action: "cancel", testMode: true, redemptionId: "TEST-REDEMPTION-001", operator: "TEST-OPERATOR" });
-  assert.equal(result.body.status, "cancelled");
-  assert.equal(context.state.customers["test-member-key"].points, 6);
-  assert.equal(context.state.rewards["test-reward-key"].stock, 2);
-  assert.equal(context.state.redemptions["TEST-REDEMPTION-001"].status, "cancelled");
-  assert.equal(context.state.redemptions["TEST-REDEMPTION-001"].cancelledAt, "2026-08-10T08:00:00.000Z");
+test('double-click same key commits one receipt under contention', async () => {
+  const {
+    call,
+    f
+  } = setup();
+  const r = await Promise.all([call(request()), call(request())]);
+  assert.deepEqual(r.map(x => x.status), [200, 200]);
+  assert.equal(r[0].redemptionId, r[1].redemptionId);
+  assert.equal(Object.keys(f.state.redemptions).length, 1);
+  assert.ok(f.conflicts > 0);
 });
-
-test("duplicate TEST cancellation does not refund twice", async () => {
-  const context = fixture();
-  await call(context.handler, testRequest());
-  const cancelBody = { action: "cancel", testMode: true, redemptionId: "TEST-REDEMPTION-001", operator: "TEST-OPERATOR" };
-  await call(context.handler, cancelBody);
-  const patchesAfterCancel = context.stats.patches;
-  const result = await call(context.handler, cancelBody);
-  assert.equal(result.body.status, "duplicate_cancel");
-  assert.equal(context.state.customers["test-member-key"].points, 6);
-  assert.equal(context.state.rewards["test-reward-key"].stock, 2);
-  assert.equal(context.stats.patches, patchesAfterCancel);
+test('regression: simultaneous distinct operationIds cannot overspend points', async () => {
+  const {
+    call,
+    f
+  } = setup({
+    customers: {
+      m: {
+        id: 'm',
+        lineUserId: actor.sub,
+        points: 5
+      }
+    }
+  });
+  const r = await Promise.all([call(request()), call(request({
+    operationId: 'op-2'
+  }))]);
+  assert.deepEqual(r.map(x => x.status).sort(), [200, 409]);
+  assert.equal(f.state.customers.m.points, 0);
+  assert.equal(Object.keys(f.state.redemptions).length, 1);
 });
-
-test("production request keeps legacy behavior without TEST prefix or sheet secret", async () => {
-  const context = fixture({ points: 10, stock: 5 });
-  delete context.state.rewards["real-reward-key"].active;
-  const result = await call(context.handler, { action: "request", operationId: "real-operation-001", customerId: "REAL-MEMBER-001", rewardId: "REAL-REWARD-001", quantity: 1 }, null);
-  assert.equal(result.statusCode, 200);
-  assert.match(result.body.redemptionId, /^redeem-/);
-  assert.equal(context.state.customers["real-member-key"].points, 98);
-  assert.equal(context.state.rewards["real-reward-key"].stock, 9);
+test('simultaneous distinct members cannot oversell shared stock', async () => {
+  const f = fixture({
+    customers: {
+      m: {
+        id: 'm',
+        lineUserId: 'one',
+        points: 10
+      },
+      n: {
+        id: 'n',
+        lineUserId: 'two',
+        points: 10
+      }
+    },
+    rewards: {
+      r: {
+        id: 'r',
+        points: 5,
+        stock: 1,
+        active: true
+      }
+    }
+  });
+  const handler = createRewardRedemptionHandler({
+    tx: f.tx,
+    authenticateMember: async e => ({
+      role: 'member',
+      sub: e.headers.subject
+    })
+  });
+  const r = await Promise.all(['one', 'two'].map((subject, i) => handler(event(request({
+    operationId: 'op-' + i
+  }), {
+    subject
+  }))));
+  assert.deepEqual(r.map(x => x.statusCode).sort(), [200, 409]);
+  assert.equal(f.state.rewards.r.stock, 0);
+  assert.equal(Object.keys(f.state.transactions).length, 1);
 });
-
-test("production cancellation keeps legacy refund behavior without TEST mode", async () => {
-  const context = fixture();
-  const request = await call(context.handler, { action: "request", operationId: "real-operation-002", customerId: "REAL-MEMBER-001", rewardId: "REAL-REWARD-001", quantity: 1 }, null);
-  const result = await call(context.handler, { action: "cancel", redemptionId: request.body.redemptionId, operator: "admin" }, null);
-  assert.equal(result.statusCode, 200);
-  assert.equal(result.body.status, "cancelled");
-  assert.equal(context.state.customers["real-member-key"].points, 99);
-  assert.equal(context.state.rewards["real-reward-key"].stock, 10);
+test('response loss after successful commit replays without a second debit', async () => {
+  const {
+    call,
+    f
+  } = setup();
+  f.loseResponse();
+  assert.equal((await call(request())).status, 503);
+  const r = await call(request());
+  assert.equal(r.status, 200);
+  assert.equal(r.replayed, true);
+  assert.equal(f.state.customers.m.points, 5);
+  assert.equal(Object.keys(f.state.redemptions).length, 1);
+});
+test('failure before commit leaves neither debit nor redemption', async () => {
+  const {
+      call,
+      f
+    } = setup(),
+    before = f.state;
+  f.failWrite();
+  assert.equal((await call(request())).status, 503);
+  assert.deepEqual(f.state, before);
+  assert.equal((await call(request())).status, 200);
+});
+test('anonymous cancellation denied, authorized cancellation refunds once', async () => {
+  const {
+    call,
+    manage,
+    handler,
+    f
+  } = setup();
+  const r = await call(request());
+  const b = {
+    action: 'cancel',
+    redemptionId: r.redemptionId
+  };
+  assert.equal((await handler(event(b, {
+    origin: process.env.APP_ORIGIN
+  }))).statusCode, 401);
+  assert.equal((await manage(b)).status, 200);
+  assert.equal((await manage(b)).status, 200);
+  assert.equal(f.state.customers.m.points, 10);
+  assert.equal(f.state.rewards.r.stock, 2);
+  assert.equal(Object.keys(f.state.transactions).length, 2);
+});
+test('cancel/complete race permits only one final transition', async () => {
+  const {
+    call,
+    manage,
+    f
+  } = setup();
+  const r = await call(request());
+  const results = await Promise.all(['complete', 'cancel'].map(action => manage({
+    action,
+    redemptionId: r.redemptionId
+  })));
+  assert.deepEqual(results.map(x => x.status).sort(), [200, 409]);
+  const status = f.state.redemptions[r.redemptionId].status;
+  assert.equal(f.state.customers.m.points, status === 'completed' ? 5 : 10);
+  assert.equal(f.state.rewards.r.stock, status === 'completed' ? 1 : 2);
+});
+test('cancellation uses stored snapshot after reward price changes', async () => {
+  const {
+    call,
+    manage,
+    f
+  } = setup();
+  const r = await call(request());
+  await f.tx(root => {
+    root.rewards.r.points = 999;
+  });
+  await manage({
+    action: 'cancel',
+    redemptionId: r.redemptionId
+  });
+  assert.equal(f.state.customers.m.points, 10);
+});
+test('testMode requires service authentication and TEST namespace', async () => {
+  const {
+    handler,
+    f
+  } = setup();
+  process.env.SHEET_SYNC_SECRET = 'fixture-service-only';
+  const b = {
+    ...request(),
+    testMode: true,
+    redemptionId: 'TEST-r',
+    memberId: 'm'
+  };
+  assert.equal((await handler(event(b))).statusCode, 401);
+  assert.equal((await handler(event(b, {
+    'x-sheet-sync-secret': process.env.SHEET_SYNC_SECRET
+  }))).statusCode, 400);
+  assert.equal(f.state.customers.m.points, 10);
+});
+test('authorized TEST request/cancel keeps TEST IDs and snapshots; replay refunds once', async () => {
+  const f = fixture({
+    customers: {
+      m: {
+        id: 'TEST-m',
+        points: 10
+      }
+    },
+    rewards: {
+      r: {
+        id: 'TEST-r',
+        points: 5,
+        stock: 2,
+        active: true,
+        name: 'Test'
+      }
+    }
+  });
+  const h = createRewardRedemptionHandler({
+    tx: f.tx
+  });
+  process.env.SHEET_SYNC_SECRET = 'fixture-service-only';
+  const hdr = {
+    'x-sheet-sync-secret': process.env.SHEET_SYNC_SECRET
+  };
+  const body = {
+    testMode: true,
+    memberId: 'TEST-m',
+    rewardId: 'TEST-r',
+    redemptionId: 'TEST-redemption',
+    operationId: 'TEST-request'
+  };
+  const first = JSON.parse((await h(event(body, hdr))).body);
+  assert.match(first.transactionId, /^TEST-POINTS-/);
+  const cancel = {
+    testMode: true,
+    action: 'cancel',
+    redemptionId: 'TEST-redemption'
+  };
+  const result = JSON.parse((await h(event(cancel, hdr))).body);
+  assert.match(result.transactionId, /^TEST-REFUND-/);
+  await h(event(cancel, hdr));
+  assert.equal(f.state.customers.m.points, 10);
+  assert.equal(f.state.rewards.r.stock, 2);
+});
+test('legacy cancellation without a stock snapshot fails closed, preserving data', async () => {
+  const {
+      manage,
+      f
+    } = setup({
+      redemptions: {
+        old: {
+          id: 'old',
+          customerId: 'm',
+          rewardId: 'r',
+          points: 5,
+          status: 'requested'
+        }
+      }
+    }),
+    before = f.state;
+  assert.equal((await manage({
+    action: 'cancel',
+    redemptionId: 'old'
+  })).status, 409);
+  assert.deepEqual(f.state, before);
 });

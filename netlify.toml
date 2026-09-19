@@ -1,8 +1,9 @@
 [build]
-  publish = "."
+  command = "node scripts/build-public.mjs"
+  publish = "dist"
 
 [build.environment]
-  SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
+  SECRETS_SCAN_SMART_DETECTION_ENABLED = "true"
 
 [functions]
   directory = "netlify/functions"

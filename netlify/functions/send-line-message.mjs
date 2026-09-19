@@ -1,142 +1,107 @@
-const LINE_PUSH_ENDPOINT = "https://api.line.me/v2/bot/message/push";
-
-const responseHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "Content-Type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Content-Type": "application/json; charset=utf-8"
-};
-
-function json(statusCode, body) {
-  return {
-    statusCode,
-    headers: responseHeaders,
-    body: JSON.stringify(body)
+import { adminAuth, assertSessionInTransaction } from './lib/auth.mjs';
+import { transaction, stableKey, databaseUrl } from './lib/firebase-rest.mjs';
+import { record } from './lib/operations.mjs';
+import { bodyOf, json, failure, error } from './lib/http.mjs';
+export async function pushLineMessage(to, text, retryKey) {
+  databaseUrl(); // Staging guard applies even to notification-only requests.
+  if (process.env.LINE_NOTIFICATIONS_ENABLED !== 'true') return {
+    ok: false,
+    status: 'notifications_disabled'
   };
-}
-
-function formatDate(value) {
-  if (!value) return "-";
-  return new Intl.DateTimeFormat("th-TH", {
-    dateStyle: "medium",
-    timeZone: "Asia/Bangkok"
-  }).format(new Date(value));
-}
-
-function money(value) {
-  return Number(value || 0).toLocaleString("th-TH");
-}
-
-function buildText(type, payload = {}) {
-  const name = payload.customerName || "คุณลูกค้า";
-
-  if (type === "approved_points") {
-    return [
-      `สวัสดี ${name}`,
-      `ร้านปิยสิริเคมีเกษตรอนุมัติแต้มให้แล้ว +${money(payload.points)} แต้ม`,
-      `ยอดซื้อที่อนุมัติ: ${money(payload.amount)} บาท`,
-      payload.ref ? `เลขบิล/อ้างอิง: ${payload.ref}` : "",
-      `แต้มรวมปัจจุบัน: ${money(payload.totalPoints)} แต้ม`,
-      `แต้มชุดนี้หมดอายุ: ${formatDate(payload.expiresAt)}`
-    ].filter(Boolean).join("\n");
-  }
-
-  if (type === "redeem_completed") {
-    return [
-      `สวัสดี ${name}`,
-      "ร้านจัดการคำขอแลกของเรียบร้อยแล้ว",
-      `รายการ: ${payload.rewardName || "-"}`,
-      `ใช้แต้ม: ${money(payload.points)} แต้ม`,
-      `แต้มคงเหลือ: ${money(payload.totalPoints)} แต้ม`
-    ].join("\n");
-  }
-
-  if (type === "redeem_cancelled") {
-    return [
-      `สวัสดี ${name}`,
-      "คำขอแลกของของคุณถูกยกเลิกแล้ว",
-      `รายการ: ${payload.rewardName || "-"}`,
-      `ระบบคืนแต้มให้แล้ว ${money(payload.points)} แต้ม`,
-      `แต้มรวมปัจจุบัน: ${money(payload.totalPoints)} แต้ม`
-    ].join("\n");
-  }
-
-  if (type === "points_expiring") {
-    return [
-      `สวัสดี ${name}`,
-      "แจ้งเตือนแต้มใกล้หมดอายุ",
-      `${money(payload.points)} แต้ม จะหมดอายุวันที่ ${formatDate(payload.expiresAt)}`,
-      `แต้มรวมปัจจุบัน: ${money(payload.totalPoints)} แต้ม`,
-      "สามารถเข้ามาแลกของรางวัลได้ใน LINE OA ของร้าน"
-    ].join("\n");
-  }
-
-  return payload.text || "แจ้งเตือนจากระบบสมาชิกปิยสิริเคมีเกษตร";
-}
-
-async function pushLineMessage(to, text) {
   const token = process.env.LINE_CHANNEL_ACCESS_TOKEN;
-  if (!token) {
-    return {
-      ok: false,
-      status: 500,
-      body: { error: "missing LINE_CHANNEL_ACCESS_TOKEN" }
-    };
-  }
-
-  const response = await fetch(LINE_PUSH_ENDPOINT, {
-    method: "POST",
+  if (!token || !to) throw error(503, 'notification_not_configured');
+  const response = await fetch('https://api.line.me/v2/bot/message/push', {
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      ...(retryKey ? {
+        'X-Line-Retry-Key': retryKey
+      } : {})
     },
     body: JSON.stringify({
       to,
-      messages: [{ type: "text", text }]
-    })
+      messages: [{
+        type: 'text',
+        text
+      }]
+    }),
+    signal: AbortSignal.timeout(10_000)
   });
-
-  const responseText = await response.text();
-  let responseBody = {};
-  try {
-    responseBody = responseText ? JSON.parse(responseText) : {};
-  } catch {
-    responseBody = { raw: responseText };
-  }
-
   return {
-    ok: response.ok,
-    status: response.status,
-    body: responseBody
+    ok: response.ok || response.status === 409 && !!response.headers.get('x-line-accepted-request-id')
   };
 }
-
-export async function handler(event) {
-  if (event.httpMethod === "OPTIONS") return json(204, {});
-  if (event.httpMethod !== "POST") return json(405, { error: "method not allowed" });
-
-  let body = null;
-  try {
-    body = JSON.parse(event.body || "null");
-  } catch {
-    return json(400, { error: "invalid JSON body" });
-  }
-
-  if (!body?.to) return json(400, { error: "missing recipient user ID" });
-
-  const text = buildText(body.type, body.payload || {});
-  const result = await pushLineMessage(body.to, text);
-
-  if (!result.ok) {
-    console.error("LINE push failed", {
-      status: result.status,
-      detail: result.body
-    });
-    return json(result.status || 500, {
-      error: "line push failed",
-      detail: result.body
-    });
-  }
-
-  return json(200, { ok: true });
+export async function notifyRecord(body, {
+  tx = transaction,
+  push = pushLineMessage,
+  actor
+} = {}) {
+  if (!['approved_points', 'redeem_completed', 'redeem_cancelled', 'points_expiring'].includes(body.type)) throw error(400, 'unknown_notification');
+  const hash = stableKey(`${body.type}:${body.id}`),
+    retryKey = `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-8${hash.slice(17, 20)}-${hash.slice(20, 32)}`;
+  const job = await tx(root => {
+    if (actor) assertSessionInTransaction(root, actor);
+    root.notificationJobs ||= {};
+    const prior = root.notificationJobs[hash];
+    if (prior?.sent) return {
+      sent: true
+    };
+    // Persist the exact payload: retries must not change after balances change.
+    if (prior) return prior;
+    const redemption = body.type.startsWith('redeem_');
+    const item = record(root, redemption ? 'redemptions' : 'transactions', body.id),
+      customer = record(root, 'customers', item.customerId);
+    if (body.type === 'redeem_completed' && item.status !== 'completed' || body.type === 'redeem_cancelled' && item.status !== 'cancelled') throw error(409, 'notification_state_mismatch');
+    if (!redemption && (item.type !== 'earn' || ![undefined, 'confirmed'].includes(item.status))) throw error(409, 'notification_state_mismatch');
+    if (body.type === 'points_expiring' && (!item.expiresAt || item.expiryNotifiedAt)) return {
+      sent: true
+    };
+    const text = body.type === 'approved_points' ? `ร้านปิยสิริเคมีเกษตรเพิ่มคะแนนให้แล้ว +${item.points} คะแนน\nคะแนนรวมปัจจุบัน: ${customer.points}` : body.type === 'points_expiring' ? `แจ้งเตือนแต้มใกล้หมดอายุ ${item.points} แต้ม วันที่ ${item.expiresAt}` : `${body.type === 'redeem_completed' ? 'จัดการคำขอแลกของเรียบร้อยแล้ว' : 'ยกเลิกคำขอแลกและคืนคะแนนแล้ว'}\nรายการ: ${item.rewardName}\nคะแนนรวมปัจจุบัน: ${customer.points}`;
+    const next = {
+      to: customer.lineUserId || '',
+      text,
+      retryKey,
+      createdAt: new Date().toISOString()
+    };
+    root.notificationJobs[hash] = next;
+    return next;
+  });
+  if (job.sent) return {
+    ok: true,
+    replayed: true
+  };
+  // LINE only retains retry keys for 24h. Never blindly resend an ambiguous old delivery.
+  if (Date.now() - Date.parse(job.createdAt) > 23 * 3600_000) throw error(409, 'notification_requires_reconciliation');
+  const result = await push(job.to, job.text, job.retryKey);
+  if (result.ok) await tx(root => {
+    root.notificationJobs[hash].sent = true;
+    root.notificationJobs[hash].sentAt = new Date().toISOString();
+    if (body.type === 'points_expiring') {
+      const t = record(root, 'transactions', body.id);
+      t.expiryNotifiedAt = new Date().toISOString();
+      t.expiryNotificationStatus = 'sent';
+    }
+  });
+  return result;
 }
+export function createNotificationHandler({
+  authenticate = adminAuth,
+  tx = transaction,
+  push = pushLineMessage
+} = {}) {
+  return async event => {
+    try {
+      if (event.httpMethod !== 'POST') throw error(405, 'method_not_allowed');
+      const actor = await authenticate(event);
+      return json(200, await notifyRecord(bodyOf(event), {
+        tx,
+        push,
+        actor
+      }));
+    } catch (e) {
+      return failure(e);
+    }
+  };
+}
+export const handler = createNotificationHandler();
