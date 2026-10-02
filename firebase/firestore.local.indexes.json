@@ -1,0 +1,15 @@
+{
+  "indexes": [
+    { "collectionGroup": "transactions", "queryScope": "COLLECTION", "fields": [{ "fieldPath": "customerId", "order": "ASCENDING" }, { "fieldPath": "date", "order": "DESCENDING" }] },
+    { "collectionGroup": "redemptions", "queryScope": "COLLECTION", "fields": [{ "fieldPath": "customerId", "order": "ASCENDING" }, { "fieldPath": "date", "order": "DESCENDING" }] },
+    { "collectionGroup": "pendingPurchases", "queryScope": "COLLECTION", "fields": [{ "fieldPath": "customerId", "order": "ASCENDING" }, { "fieldPath": "date", "order": "DESCENDING" }] },
+    { "collectionGroup": "transactions", "queryScope": "COLLECTION", "fields": [{ "fieldPath": "customerId", "order": "ASCENDING" }, { "fieldPath": "type", "order": "ASCENDING" }, { "fieldPath": "expiresAt", "order": "ASCENDING" }] },
+    { "collectionGroup": "rewards", "queryScope": "COLLECTION", "fields": [{ "fieldPath": "visible", "order": "ASCENDING" }, { "fieldPath": "id", "order": "DESCENDING" }] }
+  ],
+  "fieldOverrides": [
+    { "collectionGroup": "secureOperations", "fieldPath": "result", "indexes": [] },
+    { "collectionGroup": "transactions", "fieldPath": "pointBreakdown", "indexes": [] },
+    { "collectionGroup": "transactions", "fieldPath": "alerts", "indexes": [] },
+    { "collectionGroup": "transactions", "fieldPath": "proof", "indexes": [] }
+  ]
+}
