@@ -1,4 +1,6 @@
 import { cp, mkdir, copyFile, readFile, writeFile } from 'node:fs/promises';
+import { writeV2BuildIdentity } from './build-v2-identity.mjs';
+await writeV2BuildIdentity();
 let stagingHtml;
 if (process.env.CONTEXT === 'branch-deploy' && process.env.BRANCH === 'staging') {
   const liffId = process.env.LIFF_ID || '';

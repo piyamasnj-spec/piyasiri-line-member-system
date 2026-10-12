@@ -23,7 +23,7 @@ for (const [name, change] of Object.entries({
 
 test('all required configuration omissions refuse startup without network', () => {
   const env = remoteEnvironment();
-  for (const key of Object.keys(env)) { const copy = { ...env }; delete copy[key]; assert.throws(() => remoteConfig(copy), /v2_remote_configuration_denied/, key); }
+  for (const key of Object.keys(env).filter(k => !['CONTEXT', 'BRANCH'].includes(k))) { const copy = { ...env }; delete copy[key]; assert.throws(() => remoteConfig(copy), /v2_remote_configuration_denied/, key); }
 });
 test('OAuth identity/token URL must belong to exact test project', () => {
   for (const change of [{ project_id: 'wrong-project' }, { client_email: 'other@wrong-project.iam.gserviceaccount.com' }, { token_uri: 'https://bad.invalid/token' }, { private_key: 'invalid' }]) {

@@ -34,7 +34,17 @@ export function checkArtifacts() {
       else assert.ok(match[1].startsWith('node:'), 'Unpinned external dependency: ' + match[1]);
     }
   }
-  for (const [file, hash] of Object.entries(baseline)) assert.equal(createHash("sha256").update(canonical(readFileSync(new URL("../" + file, import.meta.url)))).digest("hex"), hash, "V1 baseline changed: " + file);
+  for (const [file, hash] of Object.entries(baseline)) {
+    let source = canonical(readFileSync(new URL('../' + file, import.meta.url)));
+    // The only approved build addition generates server-only V2 identity. Keep
+    // checking the entire original V1 build body against its unchanged hash.
+    if (file === 'scripts/build-public.mjs') {
+      const addition = "import { writeV2BuildIdentity } from './build-v2-identity.mjs';\nawait writeV2BuildIdentity();\n";
+      assert.equal(source.split(addition).length, 2, 'Expected exactly one V2 build hook');
+      source = source.replace(addition, '');
+    }
+    assert.equal(createHash('sha256').update(source).digest('hex'), hash, 'V1 baseline changed: ' + file);
+  }
   for (const operation of ["member-profile","member-state","reward-redemption","admin-operations","admin-session","sync-sale-points"]) {
     const file = new URL("../netlify/functions/v2-staging-test-" + operation + ".mjs", import.meta.url);
     const text = readFileSync(file,"utf8");

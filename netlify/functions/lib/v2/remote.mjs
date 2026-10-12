@@ -1,16 +1,25 @@
 import { createPrivateKey, sign } from 'node:crypto';
 import { error } from '../http.mjs';
+import deploymentIdentity from './deployment-identity.mjs';
 
 export const syntheticNamespace = value => /^synthetic-[a-zA-Z0-9_-]{1,100}$/.test(value || '');
 const projectPattern = /^[a-z][a-z0-9-]{4,28}[a-z0-9]$/;
 const databasePattern = /^(?:\(default\)|[a-z][a-z0-9-]{2,61}[a-z0-9])$/;
 const fail = () => { throw error(503, 'v2_remote_configuration_denied'); };
+function assertDeployment(env) {
+  if (!deploymentIdentity || deploymentIdentity.version !== 1 ||
+      deploymentIdentity.context !== 'branch-deploy' || deploymentIdentity.branch !== 'staging' ||
+      Object.keys(deploymentIdentity).sort().join(',') !== 'branch,context,version' ||
+      (env.CONTEXT !== undefined && env.CONTEXT !== deploymentIdentity.context) ||
+      (env.BRANCH !== undefined && env.BRANCH !== deploymentIdentity.branch)) fail();
+}
 function list(env, name) {
   try { const v = JSON.parse(env[name]); if (!Array.isArray(v) || !v.length || v.some(x => typeof x !== 'string' || !x || x.trim() !== x) || new Set(v).size !== v.length) fail(); return v; } catch { fail(); }
 }
 export function remoteConfig(env = process.env) {
+  assertDeployment(env);
   if (env.FIRESTORE_V2_MODE !== 'staging-test' || env.V2_STAGING_TEST_ENABLED !== 'true' ||
-      env.CONTEXT !== 'branch-deploy' || env.BRANCH !== 'staging' || env.FIRESTORE_EMULATOR_HOST) fail();
+      env.FIRESTORE_EMULATOR_HOST) fail();
   const project = env.FIRESTORE_V2_PROJECT, database = env.FIRESTORE_V2_DATABASE, namespace = env.FIRESTORE_V2_NAMESPACE;
   const projects = list(env, 'V2_ALLOWED_PROJECTS'), databases = list(env, 'V2_ALLOWED_DATABASES');
   const deniedProjects = list(env, 'V2_DENIED_PROJECTS'), deniedTargets = list(env, 'V2_DENIED_TARGETS');
@@ -45,7 +54,7 @@ export function createRemoteTransport({ env = process.env, fetcher = fetch, now 
   // Bind every config input; changing flags, credentials, identity or target invalidates this instance.
   const names = Object.keys(env).filter(k => /^(V2_|FIRESTORE_V2_|FIRESTORE_EMULATOR_HOST$|CONTEXT$|BRANCH$|APP_ORIGIN$|LINE_LOGIN_CHANNEL_ID$)/.test(k));
   const binding = names.map(k => [k, env[k]]);
-  const assertTarget = () => { if (binding.some(([k, v]) => env[k] !== v) || env.FIRESTORE_EMULATOR_HOST || env.CONTEXT !== 'branch-deploy') fail(); return initial; };
+  const assertTarget = () => { assertDeployment(env); if (binding.some(([k, v]) => env[k] !== v) || env.FIRESTORE_EMULATOR_HOST) fail(); return initial; };
   let cached;
   async function accessToken(signal) {
     assertTarget();
