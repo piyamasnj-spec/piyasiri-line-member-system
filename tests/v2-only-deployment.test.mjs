@@ -47,9 +47,36 @@ test('V2 then V1 builds preserve identical V1 output with prior generated files'
   assert.equal((await readdir(join(dir, 'dist-v2-test/functions'))).length, 6);
   assert.ok(!Object.keys(before).some(p => /deployment-identity|v2-test|server\//.test(p)));
   const config = await readFile(join(dir, 'deploy/v2-test/netlify.toml'), 'utf8');
-  assert.match(config, /publish = "dist-v2-test\/public"/);
-  assert.match(config, /directory = "dist-v2-test\/functions"/);
+  assert.match(config, /publish = "\.\.\/\.\.\/dist-v2-test\/public"/);
+  assert.match(config, /directory = "\.\.\/\.\.\/dist-v2-test\/functions"/);
 });
+for (const [context, branch, count] of [['production', 'v2-test-bootstrap', 0], ['branch-deploy', 'staging', 6]]) {
+  test(`configured nested base builds ${context}/${branch} with ${count} modern endpoints`, async () => {
+    const dir = await isolatedRepo(), base = join(dir, 'deploy/v2-test');
+    const config = await readFile(join(base, 'netlify.toml'), 'utf8');
+    const command = config.match(/command = "([^"]+)"/)[1];
+    const publish = join(base, config.match(/publish = "([^"]+)"/)[1]);
+    const functions = join(base, config.match(/directory = "([^"]+)"/)[1]);
+    assert.equal(publish, join(dir, 'dist-v2-test/public'));
+    assert.equal(functions, join(dir, 'dist-v2-test/functions'));
+    assert.ok(!/schedule|build-public|netlify\/functions/.test(config));
+    const rootConfig = await readFile(join(dir, 'netlify.toml'), 'utf8');
+    assert.ok(!/^\s*base\s*=/m.test(rootConfig));
+    assert.equal(command.split(' ')[0], 'node');
+    execFileSync(process.execPath, command.split(' ').slice(1), { cwd: base, windowsHide: true,
+      env: { ...process.env, CONTEXT: context, BRANCH: branch, V2_SERVICE_ACCOUNT_JSON: 'SECRET_CANARY' } });
+    assert.equal(await readFile(join(dir, 'netlify.toml'), 'utf8'), rootConfig);
+    const entries = await readdir(functions);
+    assert.deepEqual(entries.sort(), count ? operations.map(o => `v2-staging-test-${o}.mjs`).sort() : []);
+    assert.deepEqual(await readdir(publish), ['index.html']);
+    assert.ok(!/SECRET_CANARY|<script|LIFF|firebase|deployment-identity/i.test(await readFile(join(publish, 'index.html'), 'utf8')));
+    for (const name of entries) {
+      const module = await import(pathToFileURL(join(functions, name)));
+      assert.deepEqual(Object.keys(module), ['default']); // complete static dependency graph resolves
+      assert.equal((await module.default(request('{}'))).status, 503);
+    }
+  });
+}
 test('legacy nested artifacts stop V2 before V1 sequence, without deleting anything', async () => {
   const dir = await isolatedRepo();
   await mkdir(join(dir, 'dist/v2-test/server'), { recursive: true });

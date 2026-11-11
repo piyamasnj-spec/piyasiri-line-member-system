@@ -6,10 +6,14 @@ with V1: exhausting credits can affect other sites. This is not deployment appro
 
 ## Build contract
 
-New site only: repository base is root; package directory `deploy/v2-test` selects
-its own `netlify.toml`. Confirm the resolved configuration before any future build:
-command `node scripts/build-v2-test.mjs`, publish `dist-v2-test/public`, functions
-`dist-v2-test/functions`, Node 22.23.2. Do not edit the existing site's settings or
+New site only: Base directory MUST be `deploy/v2-test`; Package directory is not
+required. Netlify selects `deploy/v2-test/netlify.toml` ahead of root config.
+Root config has no base override. Confirm the resolved configuration before build:
+command `node ../../scripts/build-v2-test.mjs`, publish `../../dist-v2-test/public`,
+functions `../../dist-v2-test/functions`, Node 22.23.2. Paths are relative to base.
+The script resolves repository sources and output from import.meta.url, not cwd;
+no build script or financial changes are needed. The full repository checkout is
+required. Do not edit the existing site's settings or
 root config. Do not use `scripts/build-public.mjs` for the new site.
 
 V2 output is outside V1's `dist` publish tree. Nested V1 output overrides are
@@ -97,3 +101,24 @@ Still unproven: Netlify bundler/runtime and actual six-function deployment, mana
 Firestore verify/IAM compatibility, site-local variable setup and dedicated LINE
 flow. No remote behavior is certified by these local tests. Next: review this local
 patch and its commit grouping; no automatic commit, push, site creation or deploy.
+
+## Nested-base patch verification and proposed Git sequence
+
+Node 22.23.2 targeted suite: 16 PASS / 0 FAIL / 0 SKIP. The two additional cases
+run the exact configured command from deploy/v2-test for production/bootstrap
+(zero functions) and branch-deploy/staging (six default exports). Static dependency
+imports resolve from the generated server copies; no remote requests are allowed.
+This proves local module closure, not an execution of Netlify's cloud bundler.
+Official path/precedence references:
+https://docs.netlify.com/deploy/create-deploys/
+https://docs.netlify.com/build/functions/configuration/
+
+Proposed commit (not executed): stage only deploy/v2-test/netlify.toml,
+tests/v2-only-deployment.test.mjs and docs/V2_ONLY_NETLIFY_TEST.md; commit message
+`Fix V2 test deployment paths for nested Netlify base`.
+After separate approval, move v2-test-bootstrap forward to that reviewed commit
+(only if still at its approved ancestor), then push only that branch to
+github-preview using refs/heads/v2-test-bootstrap:refs/heads/v2-test-bootstrap.
+Do not push staging automatically: it triggers the existing V1 staging site.
+Staging needs the same config commit before V2 branch validation; that later push
+requires explicit approval of the V1 staging automatic-deploy side effect.
